@@ -1,0 +1,16 @@
+{
+  "name": "humatindo-website",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3000",
+    "build": "next build",
+    "start": "next start -p 3000"
+  },
+  "dependencies": {
+    "gsap": "3.12.5",
+    "next": "^15.5.29",
+    "react": "19.1.1",
+    "react-dom": "19.1.1"
+  }
+}

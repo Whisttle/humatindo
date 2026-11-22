@@ -1,0 +1,26 @@
+/* Shared site navbar — used by every page via <Navbar />. Classes are hn-* so page CSS can't collide. */
+.hn-hdr{position:fixed;top:0;left:0;right:0;z-index:50;padding:0;pointer-events:none;transition:padding .5s cubic-bezier(.2,.7,.2,1)}
+.hn-hdr.float{padding:14px 16px 0}
+.hn-nav{position:relative;pointer-events:auto;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;max-width:100%;height:76px;padding:0 max(24px,calc((100% - 1360px) / 2));border-radius:0;background:transparent;transition:max-width .55s cubic-bezier(.2,.7,.2,1),height .55s,padding .55s,border-radius .55s}
+.hn-nav.float{max-width:1240px;height:66px;padding:0 12px 0 20px;border-radius:999px}
+.hn-brand{display:flex;align-items:center;gap:10px;text-decoration:none;flex:none}
+.hn-brand img{width:34px;height:auto;display:block}
+.hn-brand span{color:#06254F;font:700 16px 'Noto Sans',system-ui,sans-serif;letter-spacing:.02em}
+.hn-links{display:flex;gap:2px;padding:4px;border-radius:999px;background:#fff;box-shadow:0 6px 18px -12px rgba(6,37,79,.4)}
+.hn-l{display:inline-flex;align-items:center;height:38px;padding:0 16px;border-radius:999px;color:#342C2A;text-decoration:none;font:500 14.5px 'Noto Sans',system-ui,sans-serif;transition:background-color .25s,color .25s}
+.hn-l:hover{color:#06254F;background:rgba(6,37,79,.06)}
+.hn-l.on{color:#fff;background:#06254F;font-weight:600}
+.hn-right{display:flex;align-items:center;gap:10px}
+.hn-lt{position:relative;display:flex;padding:3px;border-radius:999px;background:#fff;box-shadow:0 6px 18px -12px rgba(6,37,79,.4)}
+.hn-th{position:absolute;top:3px;left:3px;width:40px;height:34px;border-radius:999px;background:#30318C;transition:transform .4s cubic-bezier(.2,.7,.2,1)}
+.hn-seg{position:relative;z-index:1;width:40px;height:34px;border:0;border-radius:999px;background:none;color:#342C2A;font:600 13px 'Noto Sans',sans-serif;cursor:pointer;transition:color .3s}
+.hn-seg.on{color:#fff}
+.hn-cta{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 18px;border-radius:999px;background:#30318C;color:#fff;font:600 14px/1.1 'Noto Sans',system-ui,sans-serif;text-decoration:none;white-space:nowrap;box-shadow:0 14px 30px -12px rgba(48,49,140,.7);transition:transform .3s cubic-bezier(.2,.7,.2,1),background-color .3s}
+.hn-cta:hover{transform:translateY(-2px);background:#27287A;color:#fff}
+.hn-cta:active{transform:scale(.97)}
+.hn-burger{display:none;width:44px;height:44px;border-radius:50%;border:0;background:#fff;align-items:center;justify-content:center;cursor:pointer;color:#06254F;box-shadow:0 6px 18px -12px rgba(6,37,79,.4)}
+.hn-menu{display:none;pointer-events:auto;max-width:1240px;margin:10px auto 0;border-radius:28px;padding:14px;flex-direction:column;gap:4px;background:#fff;box-shadow:0 24px 50px -24px rgba(6,37,79,.35);animation:hn-in .35s cubic-bezier(.2,.7,.2,1) both}
+.hn-menu .hn-cta{margin-top:8px}
+@keyframes hn-in{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+@media (max-width:960px){.hn-links,.hn-right>.hn-cta{display:none}.hn-burger{display:inline-flex}.hn-menu{display:flex}}
+@media (prefers-reduced-motion:reduce){.hn-menu{animation:none}}
