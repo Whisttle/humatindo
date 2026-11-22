@@ -1,0 +1,19 @@
+services:
+  web:
+    build: .
+    restart: unless-stopped
+    networks:
+      - traefik
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=n8n_default
+      - traefik.http.routers.humatindo-web.rule=Host(`humatindo.whisttle.net`)
+      - traefik.http.routers.humatindo-web.entrypoints=web,websecure
+      - traefik.http.routers.humatindo-web.tls=true
+      - traefik.http.routers.humatindo-web.tls.certresolver=mytlschallenge
+      - traefik.http.services.humatindo-web.loadbalancer.server.port=3000
+
+networks:
+  traefik:
+    external: true
+    name: n8n_default
