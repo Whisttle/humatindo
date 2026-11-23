@@ -133,8 +133,8 @@ class PhoneProducts extends React.Component {
 <img src="/img/moss-blue-real.webp" alt="" style={{position: "absolute", inset: "0", width: "100%", height: "100%", objectFit: "cover"}} />
 <div style={{position: "absolute", inset: "0", background: "linear-gradient(180deg, rgba(4,22,44,.5) 0%, rgba(4,22,44,.15) 35%, rgba(4,22,44,.9) 100%)"}}></div>
 <div aria-hidden="true" style={{position: "absolute", left: "0", right: "0", top: "96px", display: "flex", justifyContent: "center", alignItems: "flex-end"}}>
-<div className="float" style={{animationDelay: "-2s", transformOrigin: "bottom"}}><img src="/img/p-calshumat.webp" alt="" style={{height: "170px", width: "auto", display: "block", transform: "rotate(-8deg)", marginRight: "-18px", filter: "drop-shadow(0 18px 14px rgba(0,0,0,.45))"}} /></div>
-<div className="float" style={{position: "relative", zIndex: "2"}}><img src="/img/p-borohumic.webp" alt="" style={{height: "210px", width: "auto", display: "block", filter: "drop-shadow(0 22px 16px rgba(0,0,0,.5))"}} /></div>
+<div className="float" style={{animationDelay: "-2s", transformOrigin: "bottom"}}><img src="/img/p-kasimulan.webp" alt="" style={{height: "170px", width: "auto", display: "block", transform: "rotate(-8deg)", marginRight: "-18px", filter: "drop-shadow(0 18px 14px rgba(0,0,0,.45))"}} /></div>
+<div className="float" style={{position: "relative", zIndex: "2"}}><img src="/img/p-microhumic.webp" alt="" style={{height: "210px", width: "auto", display: "block", filter: "drop-shadow(0 22px 16px rgba(0,0,0,.5))"}} /></div>
 <div className="float" style={{animationDelay: "-4s"}}><img src="/img/p-silikamat.webp" alt="" style={{height: "170px", width: "auto", display: "block", transform: "rotate(8deg)", marginLeft: "-18px", filter: "drop-shadow(0 18px 14px rgba(0,0,0,.45))"}} /></div>
 </div>
 <div className="in px" style={{position: "relative", paddingTop: "330px", paddingBottom: "32px", display: "flex", flexDirection: "column", gap: "16px"}}>
@@ -186,7 +186,7 @@ class PhoneProducts extends React.Component {
 </main>
 
 <footer className="px" style={{paddingTop: "48px", paddingBottom: "24px"}}>
-<img src="/img/logo-full.webp" alt="PT Artha Prima Humatindo \u2014 Leading in biostimulant and organic fertilizer" style={{width: "170px", height: "auto", display: "block"}} />
+<img src="/img/logo-full.webp" alt="PT Artha Prima Humatindo — Leading in biostimulant and organic fertilizer" style={{width: "170px", height: "auto", display: "block"}} />
 <div style={{marginTop: "24px", borderBottom: "1px solid rgba(6,37,79,.1)"}}>
 {(v.foot || []).map((f, f_i3) => (<React.Fragment key={f_i3}>
 <button type="button" className="flb" aria-expanded={f.open} onClick={f.toggle}>{f.t}<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{transform: `rotate(${f.rot}deg)`, transition: "transform .3s"}}><path d="M6 9l6 6 6-6"></path></svg></button>

@@ -61,10 +61,28 @@
 .story-home .rv.scrolly{height:220vh}
 .story-home .rv-in{position:relative;padding:130px 24px 40px}
 .story-home .rv.scrolly .rv-in{position:sticky;top:0;min-height:100vh;display:flex;align-items:center;padding:0 24px}
+.story-home .pur-in{min-height:max(920px,97vw)}
+.story-home .pur-txt{width:40%;margin-right:auto;display:flex;flex-direction:column;gap:32px}
+.story-home .pur-sec{position:relative;z-index:2}
+@media (min-width:1041px){.story-home .rv.scrolly .pur-globe{--gw:min(115.6%,calc(112.5vh + 350px));width:var(--gw);top:calc(55vh - var(--gw) / 2);bottom:auto;right:calc(var(--gw) * -0.46)}}
+.story-home .pur-globe{position:absolute;right:-53.1%;bottom:-140px;width:115.6%;margin:0;z-index:0}
+.story-home .pur-txt{position:relative;z-index:1}
+.story-home .pur-cap{position:absolute;right:30.1%;bottom:172px;flex-direction:column;align-items:flex-end}
+@media (max-width:1040px){.story-home .pur-in{min-height:0}
+.story-home .pur-sec{min-height:0}
+.story-home .pur-txt{width:100%}
+.story-home .pur-globe{position:static;width:100%;max-width:640px;margin:40px auto 0}
+.story-home .pur-cap{position:static;flex-direction:row;flex-wrap:wrap;justify-content:center}}
 .story-home .rw{display:inline-block;margin-right:.24em}
 .story-home .rw.hl{color:#0070AC;font-weight:400}
 .story-home .fade{opacity:0;transition:opacity .8s ease}
 .story-home .fade.is-loaded{opacity:1}
+.story-home .hs{position:absolute;inset:0;opacity:0;transition:opacity 1s ease}
+.story-home .hs.on{opacity:1}
+.story-home .hdot{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;padding:0;border:0;background:transparent;color:#fff;cursor:pointer}
+.story-home .hdot .d{display:block;width:8px;height:8px;border-radius:999px;background:rgba(255,255,255,.5);transition:width .4s,background-color .4s}
+.story-home .hdot .d.on{width:26px;background:#fff}
+@media (prefers-reduced-motion:reduce){.story-home .hs{transition:none}}
 .story-home .mnav{display:none}
 @media (max-width:1040px){.story-home .dnav{display:none!important}
 .story-home .mnav{display:inline-flex}}

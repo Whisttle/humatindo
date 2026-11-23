@@ -110,7 +110,7 @@ class PhoneAbout extends React.Component {
 
 <main>
 <section aria-labelledby="m-ab-title" style={{position: "relative", minHeight: "600px", display: "flex", flexDirection: "column", justifyContent: "flex-end", background: "#2b3a1c", overflow: "hidden"}}>
-<img src="/img/moss-blue-real.webp" alt="" style={{position: "absolute", inset: "0", width: "100%", height: "100%", objectFit: "cover", objectPosition: "40% 50%"}} />
+<img src="/img/lignite-raw.webp" alt="" style={{position: "absolute", inset: "0", width: "100%", height: "100%", objectFit: "cover", objectPosition: "50% 50%"}} />
 <div style={{position: "absolute", inset: "0", background: "linear-gradient(180deg, rgba(4,22,44,.45) 0%, rgba(4,22,44,.2) 30%, rgba(4,22,44,.9) 100%)"}}></div>
 <div className="in px" style={{position: "relative", paddingTop: "120px", paddingBottom: "36px", display: "flex", flexDirection: "column", gap: "18px"}}>
 <p className="eb lt">About Humatindo</p>
@@ -124,7 +124,7 @@ class PhoneAbout extends React.Component {
 <div style={{display: "flex", flexDirection: "column", gap: "16px"}}><p className="eb">Who we are</p><h2 id="m-who-title" className="h2">Indonesia's first private producer of <b>the most complete range of humic compound variants.</b></h2></div>
 <div style={{display: "flex", flexDirection: "column", gap: "14px", fontSize: "15.5px", lineHeight: "1.7"}}>
 <p style={{margin: "0"}}>Established in Riau in January 2016, we combine humate compounds, amino compounds, seaweed extract and essential micronutrients into complete biostimulant formulations.</p>
-<p style={{margin: "0"}}>From Pekanbaru and Tangerang we supply government projects, businesses, retailers and plantations across Indonesia, and export to seven Asian markets.</p>
+<p style={{margin: "0"}}>From Pekanbaru and Tangerang we supply government projects, businesses, retailers and plantations across Indonesia, and export to six Asian markets.</p>
 </div>
 </div>
 <div ref={v.setStats} className="stats" style={{marginTop: "24px", display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "12px"}}>
@@ -216,7 +216,7 @@ class PhoneAbout extends React.Component {
 </main>
 
 <footer className="px" style={{paddingTop: "48px", paddingBottom: "24px"}}>
-<img src="/img/logo-full.webp" alt="PT Artha Prima Humatindo \u2014 Leading in biostimulant and organic fertilizer" style={{width: "170px", height: "auto", display: "block"}} />
+<img src="/img/logo-full.webp" alt="PT Artha Prima Humatindo — Leading in biostimulant and organic fertilizer" style={{width: "170px", height: "auto", display: "block"}} />
 <div style={{marginTop: "24px", borderBottom: "1px solid rgba(6,37,79,.1)"}}>
 {(v.foot || []).map((f, f_i8) => (<React.Fragment key={f_i8}>
 <button type="button" className="flb" aria-expanded={f.open} onClick={f.toggle}>{f.t}<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{transform: `rotate(${f.rot}deg)`, transition: "transform .3s"}}><path d="M6 9l6 6 6-6"></path></svg></button>

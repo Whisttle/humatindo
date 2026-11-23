@@ -11,6 +11,32 @@ class PhoneHome extends React.Component {
     this.state = { chap: 0, step: 0, acc: 0, reach: 0, foot: -1, prog: 0, bar: false };
     this.setRoot = (el) => { this.root = el; };
     this.setGlobe = (el) => { this.globe = el; };
+    this.state.slide = 0; this.state.paused = false;
+    this.setVid = (el) => { if (el) { el.muted = true; const p = el.play && el.play(); if (p && p.catch) p.catch(() => {}); } };
+    this.togglePause = () => this.setState((s) => ({ paused: !s.paused }));
+    this.goSlide = (i) => { this.setState({ slide: ((i % 4) + 4) % 4 }); this.startSlides(); };
+    this.setHero = (el) => {
+      if (el === this.hero) return;
+      if (this._unbindHero) { this._unbindHero(); this._unbindHero = null; }
+      this.hero = el;
+      if (!el) return;
+      let sx = 0, sy = 0, on = false, moved = false;
+      const down = (e) => { if (e.button > 0) return; on = true; moved = false; sx = e.clientX; sy = e.clientY; };
+      const up = (e) => {
+        if (!on) return; on = false;
+        const dx = e.clientX - sx, dy = e.clientY - sy;
+        if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.2) { moved = true; this.goSlide(this.state.slide + (dx < 0 ? 1 : -1)); }
+      };
+      const cancel = () => { on = false; };
+      const click = (e) => { if (moved) { e.preventDefault(); e.stopPropagation(); moved = false; } };
+      const drag = (e) => e.preventDefault();
+      el.addEventListener('pointerdown', down); el.addEventListener('pointerup', up);
+      el.addEventListener('pointercancel', cancel); el.addEventListener('click', click, true); el.addEventListener('dragstart', drag);
+      this._unbindHero = () => {
+        el.removeEventListener('pointerdown', down); el.removeEventListener('pointerup', up);
+        el.removeEventListener('pointercancel', cancel); el.removeEventListener('click', click, true); el.removeEventListener('dragstart', drag);
+      };
+    };
     this.setChap = (el) => { this.chapEl = el; };
     this.setStats = (el) => { this.statsEl = el; };
     this.onChap = (ev) => {
@@ -24,8 +50,14 @@ class PhoneHome extends React.Component {
     this.chapNext = () => go(1);
   }
 
+  startSlides() {
+    clearInterval(this._slT);
+    this._slT = setInterval(() => { if (this._alive && !this.state.paused) this.setState((s) => ({ slide: (s.slide + 1) % 4 })); }, 5000);
+  }
+
   componentDidMount() {
     this._alive = true;
+    this.startSlides();
     this.startGlobe();
     setTimeout(() => this.bindScroll(), 0);
     try {
@@ -37,7 +69,7 @@ class PhoneHome extends React.Component {
   }
 
   componentWillUnmount() {
-    this._alive = false; cancelAnimationFrame(this._raf); cancelAnimationFrame(this._craf);
+    this._alive = false; clearInterval(this._slT); if (this._unbindHero) this._unbindHero(); cancelAnimationFrame(this._raf); cancelAnimationFrame(this._craf);
     if (this._io) this._io.disconnect(); if (this._sio) this._sio.disconnect(); if (this._unbindGlobe) this._unbindGlobe();
     if (this._sc && this._onScroll) this._sc.removeEventListener('scroll', this._onScroll);
   }
@@ -102,11 +134,11 @@ class PhoneHome extends React.Component {
       }
       return pts;
     };
-    const exportsL = [['Malaysia', 3.14, 101.69, 16, 6], ['Thailand', 13.75, 100.5, -14, -24], ['Vietnam', 16.0, 107.8, 14, -26], ['Philippines', 14.6, 121.0, 16, 10], ['Bangladesh', 23.8, 90.4, -14, -20], ['Sri Lanka', 7.3, 80.6, -16, 4], ['Japan', 35.7, 139.7, 14, -18]]
+    const exportsL = [['Malaysia', 3.14, 101.69, 16, 6], ['Thailand', 13.75, 100.5, -14, -24], ['Vietnam', 16.0, 107.8, 14, -26], ['Philippines', 14.6, 121.0, 16, 10], ['Bangladesh', 23.8, 90.4, -14, -20], ['Sri Lanka', 7.3, 80.6, -16, 4]]
       .map((d, i) => { const v = vec(d[1], d[2]); return { name: d[0], v, lx: d[3], ly: d[4], pts: mkArc(v, 0.85, 72), off: 0.5 + i * 0.32, per: 4.2 + (i % 3) * 0.5, kind: 'x' }; });
     const domestic = [['Java', -6.2, 106.8], ['Kalimantan', -1.27, 116.8], ['Sulawesi', -5.14, 119.4]]
       .map((d, i) => { const v = vec(d[1], d[2]); return { name: d[0], v, pts: mkArc(v, 0.9, 40), off: i * 0.25, per: 3.0 + i * 0.4, kind: 'd' }; });
-    const routes = domestic.concat(exportsL);
+    const routes = exportsL;
     const grat = [];
     for (let lo = -180; lo < 180; lo += 20) { const ln = []; for (let la = -80; la <= 80; la += 4) ln.push(vec(la, lo)); grat.push(ln); }
     for (let la = -60; la <= 60; la += 20) { const ln = []; for (let lo = -180; lo <= 180; lo += 4) ln.push(vec(la, lo)); grat.push(ln); }
@@ -343,21 +375,21 @@ class PhoneHome extends React.Component {
   renderVals() {
     const s = this.state;
     const chapters = [
-      { n: '01', t: 'It began with a rock beneath Sumatra.', b: 'Founded in Riau in January 2016, we saw that Sumatran lignite holds the humic substances that keep soil alive.', img: '/img/lignite.webp', alt: 'Raw lignite from Sumatra', pos: '50% 85%' },
+      { n: '01', t: 'It began with a rock beneath Sumatra.', b: 'Founded in Riau in January 2016, we saw that Sumatran lignite holds the humic substances that keep soil alive.', img: '/img/lignite-raw.webp', alt: 'Raw lignite from Sumatra', pos: '50% 85%' },
       { n: '02', t: 'From ancient lignite to living soil.', b: 'We extract humic and fulvic compounds in stages, then formulate them into complete biostimulants.', img: '/img/factory.webp', alt: 'Humatindo head office and factory grounds in Pekanbaru', pos: '50% 45%' },
-      { n: '03', t: 'Growing alongside the people who grow our food.', b: 'Regenerative agriculture shapes four commitments: quality, soil, knowledge and responsibility.', img: '/img/farmer.webp', alt: 'A rice farmer in his paddy field', pos: '50% 25%' },
-      { n: '04', t: 'From Riau to the rest of Asia.', b: 'In use across Sumatra, Java, Kalimantan and Sulawesi, and exported to seven Asian markets.', img: '/img/moss-blue-real.webp', alt: '', pos: '50% 50%' }
+      { n: '03', t: 'Growing alongside the people who grow our food.', b: 'Regenerative agriculture shapes four commitments: quality, soil, knowledge and responsibility.', img: '/img/farmer-tree.jpg', alt: 'A smiling farmer reaching up to tend the branches of a fruit tree', pos: '50% 60%' },
+      { n: '04', t: 'From Riau to the rest of Asia.', b: 'In use across Sumatra, Java, Kalimantan and Sulawesi, and exported to six Asian markets.', img: '/img/moss-blue-real.webp', alt: '', pos: '50% 50%' }
     ];
     const ease = (x) => 1 - Math.pow(1 - x, 3), p = ease(s.prog);
     const fmt = (n) => Math.round(n).toLocaleString('en-US');
     const stats = [
       { v: fmt(3000000 * p) + ' L', l: 'Biostimulant capacity each year' },
       { v: fmt(9 * p), l: 'Formulations in two product lines' },
-      { v: fmt(7 * p), l: 'Export markets across Asia' },
+      { v: fmt(6 * p), l: 'Export markets across Asia' },
       { v: fmt(4 * p) + ' yrs', l: 'Shelf life of our formulations' }
     ];
     const stepData = [
-      { n: '1', t: 'Source', b: 'Lignite and leonardite from Sumatra, chosen for a balanced 6:4 humic-to-fulvic ratio.', img: '/img/lignite.webp', alt: 'Raw lignite from Sumatra', pos: '50% 85%' },
+      { n: '1', t: 'Source', b: 'Lignite and leonardite from Sumatra, chosen for a balanced 6:4 humic-to-fulvic ratio.', img: '/img/lignite-raw.webp', alt: 'Raw lignite from Sumatra', pos: '50% 85%' },
       { n: '2', t: 'Extract', b: 'Humic compounds are extracted in stages into a concentrate that is fully soluble, with no sediment.', img: '/img/factory.webp', alt: 'Humatindo production grounds in Pekanbaru', pos: '50% 45%' },
       { n: '3', t: 'Formulate', b: 'Combined with amino compounds, seaweed extract, monosilicic acid and essential micronutrients into complete biostimulants.', img: '/img/moss-blue-real-sm.webp', alt: '', pos: '50% 50%' }
     ];
@@ -370,7 +402,7 @@ class PhoneHome extends React.Component {
     ].map((m, i) => ({ n: m[0], t: m[1], b: m[2], open: s.acc === i, toggle: () => this.setState({ acc: s.acc === i ? -1 : i }) }));
     const reachData = [
       { t: 'Indonesia', note: 'Our products are used across Indonesia\'s main islands.', items: ['Sumatra', 'Java', 'Kalimantan', 'Sulawesi'] },
-      { t: 'Export', note: 'Exported to growers in seven Asian markets.', items: ['Malaysia', 'Thailand', 'Vietnam', 'Philippines', 'Bangladesh', 'Sri Lanka', 'Japan'] },
+      { t: 'Export', note: 'Exported to growers in six Asian markets.', items: ['Malaysia', 'Thailand', 'Vietnam', 'Philippines', 'Bangladesh', 'Sri Lanka'] },
       { t: 'Partners', note: 'We work with agribusiness and agrochemical companies across five segments.', items: ['Government projects', 'Business-to-business', 'Retail and open market', 'Plantations', 'Export partners'] }
     ];
     const reachTabs = reachData.map((d, i) => ({ t: d.t, on: s.reach === i, cls: s.reach === i ? 'sg on' : 'sg', pick: () => this.setState({ reach: i }) }));
@@ -380,7 +412,22 @@ class PhoneHome extends React.Component {
       { t: 'Follow us', links: [{ t: 'Instagram', h: 'https://www.instagram.com/bio_stimulant', tg: '_blank' }, { t: 'YouTube', h: 'https://www.youtube.com/@humatindo', tg: '_blank' }, { t: 'Facebook', h: 'https://www.facebook.com/share/1EuycTwTWW/', tg: '_blank' }, { t: 'TikTok', h: 'https://www.tiktok.com/@aph.humatindo', tg: '_blank' }] }
     ];
     const foot = footData.map((f, i) => ({ t: f.t, links: f.links, open: s.foot === i, rot: s.foot === i ? 180 : 0, toggle: () => this.setState({ foot: s.foot === i ? -1 : i }) }));
+    // Hero slider (same as desktop). Videos play muted on loop; the still shows while each loads.
+    const cur = this.state.slide;
+    const slides = [
+      { name: 'Coal mining video', src: '/img/mining-poster.jpg', video: '/video/mining.mp4' },
+      { name: 'Moss field', src: '/img/moss-blue-real.webp', video: '' },
+      { name: 'Farm land video', src: '/img/farmland-poster.jpg', video: '/video/farmland.mp4' },
+      { name: 'Lignite coal', src: '/img/lignite-coal.webp', video: '' }
+    ].map((s, i) => ({
+      vid: !!s.video, img: !s.video, src: s.video || s.src, poster: s.src,
+      cls: i === cur ? 'hs on' : 'hs', dot: i === cur ? 'd on' : 'd', on: i === cur ? 'true' : 'false',
+      label: 'Show background ' + (i + 1) + ' of 4: ' + s.name, go: () => this.goSlide(i)
+    }));
     return {
+      slides, setVid: this.setVid, togglePause: this.togglePause, setHero: this.setHero,
+      pauseLabel: this.state.paused ? 'Play background slideshow' : 'Pause background slideshow',
+      pauseIcon: this.state.paused ? 'M8 5.5v13l11-6.5z' : 'M7 5h3.5v14H7zM13.5 5H17v14h-3.5z',
       setRoot: this.setRoot, setGlobe: this.setGlobe, setChap: this.setChap, setStats: this.setStats,
       onChap: this.onChap, chapPrev: this.chapPrev, chapNext: this.chapNext,
       chapters, chapDots: chapters.map((c, i) => (i === s.chap ? 'dot on' : 'dot')),
@@ -395,8 +442,19 @@ class PhoneHome extends React.Component {
 <Nav active={"home"} set={"Phone"} cta={"#m-contact"} preview={false} />
 
 <main>
-<section aria-labelledby="m-hero-title" style={{position: "relative", minHeight: "640px", display: "flex", flexDirection: "column", justifyContent: "flex-end", background: "#2b3a1c", overflow: "hidden"}}>
-<img src="/img/moss-blue-real.webp" alt="" style={{position: "absolute", inset: "0", width: "100%", height: "100%", objectFit: "cover", objectPosition: "60% 50%"}} />
+<section ref={v.setHero} aria-labelledby="m-hero-title" aria-roledescription="carousel" style={{touchAction: "pan-y", position: "relative", minHeight: "640px", display: "flex", flexDirection: "column", justifyContent: "flex-end", background: "#2b3a1c", overflow: "hidden"}}>
+<div aria-hidden="true" style={{position: "absolute", inset: "0"}}>
+{(v.slides || []).map((s, s_i1) => (<React.Fragment key={s_i1}>
+<div className={s.cls}>
+{(s.vid) ? (<><video ref={v.setVid} src={s.src} poster={s.poster} muted autoPlay loop playsInline style={{position: "absolute", inset: "0", width: "100%", height: "100%", objectFit: "cover"}}></video></>) : null}
+{(s.img) ? (<><img src={s.src} alt="" style={{position: "absolute", inset: "0", width: "100%", height: "100%", objectFit: "cover", objectPosition: "60% 50%"}} /></>) : null}
+</div>
+</React.Fragment>))}
+</div>
+<div className="hctl" style={{position: "absolute", zIndex: "3", top: "84px", right: "12px", display: "flex", alignItems: "center", gap: "0", padding: "0 2px", borderRadius: "999px", background: "rgba(4,22,44,.35)", WebkitBackdropFilter: "blur(12px)", backdropFilter: "blur(12px)"}}>
+{(v.slides || []).map((s, s_i2) => (<React.Fragment key={s_i2}><button type="button" className="hdot" aria-label={s.label} aria-pressed={s.on} onClick={s.go}><span className={s.dot}></span></button></React.Fragment>))}
+<button type="button" className="hdot" aria-label={v.pauseLabel} onClick={v.togglePause}><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d={v.pauseIcon}></path></svg></button>
+</div>
 <div style={{position: "absolute", inset: "0", background: "linear-gradient(180deg, rgba(4,22,44,.45) 0%, rgba(4,22,44,.2) 30%, rgba(4,22,44,.9) 100%)"}}></div>
 <div className="in px" style={{position: "relative", paddingTop: "120px", paddingBottom: "24px", display: "flex", flexDirection: "column", gap: "20px"}}>
 <p className="eb lt">Est. 2016 · Riau, Indonesia</p>
@@ -422,7 +480,7 @@ class PhoneHome extends React.Component {
 <p style={{margin: "0", fontSize: "27px", lineHeight: "1.25", letterSpacing: "-.02em", fontWeight: "300", color: "#06254F"}}>Healthy soil is where every harvest begins. We exist to <span style={{color: "#0070AC", fontWeight: "400"}}>restore it</span>, helping Asia move toward <span style={{color: "#0070AC", fontWeight: "400"}}>regenerative agriculture</span> with biostimulants made from <span style={{color: "#0070AC", fontWeight: "400"}}>Indonesia's own resources.</span></p>
 </div>
 <figure style={{margin: "0", display: "flex", flexDirection: "column", alignItems: "center", gap: "10px"}}>
-<canvas ref={v.setGlobe} role="img" aria-label="Interactive globe: a signal spreads from Pekanbaru, Sumatra, with routes to Java, Kalimantan, Sulawesi and seven export markets. Drag to rotate." style={{display: "block", width: "100%", maxWidth: "520px", aspectRatio: "1 / 1", touchAction: "pan-y", cursor: "grab"}}></canvas>
+<canvas ref={v.setGlobe} role="img" aria-label="Interactive globe: a signal spreads from Pekanbaru, Sumatra, with routes to Malaysia, Thailand, Vietnam, the Philippines, Sri Lanka and Bangladesh. Drag to rotate." style={{display: "block", width: "100%", maxWidth: "520px", aspectRatio: "1 / 1", touchAction: "pan-y", cursor: "grab"}}></canvas>
 <figcaption style={{display: "inline-flex", alignItems: "center", gap: "8px", minHeight: "36px", padding: "0 14px", borderRadius: "999px", background: "#fff", fontSize: "13px", color: "#06254F", boxShadow: "0 10px 24px -18px rgba(6,37,79,.5)"}}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 11V5a2 2 0 0 1 4 0v6M13 10a2 2 0 0 1 4 0v3a6 6 0 0 1-6 6h-1a6 6 0 0 1-5-3l-2-3a2 2 0 0 1 3-2l1 1"></path></svg>Drag the globe to explore</figcaption>
 </figure>
 </div>
@@ -434,7 +492,7 @@ class PhoneHome extends React.Component {
 <div style={{display: "flex", gap: "8px"}}><button type="button" className="rbtn" aria-label="Previous chapter" onClick={v.chapPrev}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"></path></svg></button><button type="button" className="rbtn" aria-label="Next chapter" onClick={v.chapNext} style={{background: "#06254F", color: "#fff", boxShadow: "none"}}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></button></div>
 </div>
 <div className="car" ref={v.setChap} onScroll={v.onChap} style={{marginTop: "24px"}}>
-{(v.chapters || []).map((c, c_i1) => (<React.Fragment key={c_i1}>
+{(v.chapters || []).map((c, c_i3) => (<React.Fragment key={c_i3}>
 <article className="pc" style={{minHeight: "420px"}}>
 <img src={c.img} alt={c.alt} loading="lazy" style={{objectPosition: c.pos}} />
 <div style={{display: "flex", flexDirection: "column", gap: "10px"}}>
@@ -446,7 +504,7 @@ class PhoneHome extends React.Component {
 </React.Fragment>))}
 </div>
 <div className="px" style={{marginTop: "16px", display: "flex", alignItems: "center", justifyContent: "space-between"}}>
-<div className="dots">{(v.chapDots || []).map((d, d_i2) => (<React.Fragment key={d_i2}><span className={d}></span></React.Fragment>))}</div>
+<div className="dots">{(v.chapDots || []).map((d, d_i4) => (<React.Fragment key={d_i4}><span className={d}></span></React.Fragment>))}</div>
 <a href="/about" style={{display: "inline-flex", alignItems: "center", gap: "6px", minHeight: "44px", fontSize: "14.5px", fontWeight: "600", textDecoration: "none"}}>More about us<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></a>
 </div>
 </section>
@@ -454,7 +512,7 @@ class PhoneHome extends React.Component {
 <section aria-labelledby="m-glance-title" className="px" style={{paddingTop: "64px"}}>
 <h2 id="m-glance-title" className="h2" style={{fontSize: "26px"}}>Humatindo <b>at a glance</b></h2>
 <div ref={v.setStats} className="stats" style={{marginTop: "20px", display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "12px"}}>
-{(v.stats || []).map((s, s_i3) => (<React.Fragment key={s_i3}><div className="stat"><span className="v tnum">{s.v}</span><span className="l">{s.l}</span></div></React.Fragment>))}
+{(v.stats || []).map((s, s_i5) => (<React.Fragment key={s_i5}><div className="stat"><span className="v tnum">{s.v}</span><span className="l">{s.l}</span></div></React.Fragment>))}
 </div>
 </section>
 
@@ -463,7 +521,7 @@ class PhoneHome extends React.Component {
 <p className="eb lt">02 — Our science</p>
 <h2 id="m-sci-title" className="h2" style={{color: "#fff"}}>From ancient lignite <b>to living soil.</b></h2>
 <div className="seg" role="tablist" aria-label="Production steps" style={{background: "rgba(255,255,255,.1)"}}>
-{(v.steps || []).map((s, s_i4) => (<React.Fragment key={s_i4}><button type="button" role="tab" className={s.cls} aria-selected={s.on} onClick={s.pick}>{s.t}</button></React.Fragment>))}
+{(v.steps || []).map((s, s_i6) => (<React.Fragment key={s_i6}><button type="button" role="tab" className={s.cls} aria-selected={s.on} onClick={s.pick}>{s.t}</button></React.Fragment>))}
 </div>
 <div role="tabpanel" style={{display: "flex", flexDirection: "column", gap: "16px"}}>
 <div style={{position: "relative", height: "220px", borderRadius: "20px", overflow: "hidden", background: "#0d3260"}}><img src={v.step.img} alt={v.step.alt} style={{position: "absolute", inset: "0", width: "100%", height: "100%", objectFit: "cover", objectPosition: v.step.pos}} /></div>
@@ -479,10 +537,10 @@ class PhoneHome extends React.Component {
 <div style={{display: "flex", flexDirection: "column", gap: "18px"}}>
 <p className="eb">03 — Our commitment</p>
 <h2 id="m-com-title" className="h2">Growing alongside the people <b>who grow our food.</b></h2>
-<div style={{position: "relative", height: "280px", borderRadius: "22px", overflow: "hidden", background: "#b9c8a4"}}><img src="/img/farmer.webp" alt="A rice farmer standing in his paddy field" loading="lazy" style={{position: "absolute", inset: "0", width: "100%", height: "100%", objectFit: "cover", objectPosition: "50% 25%"}} /></div>
+<div style={{position: "relative", height: "280px", borderRadius: "22px", overflow: "hidden", background: "#b9c8a4"}}><img src="/img/farmer-tree.jpg" alt="A smiling farmer reaching up to tend the branches of a fruit tree" loading="lazy" style={{position: "absolute", inset: "0", width: "100%", height: "100%", objectFit: "cover", objectPosition: "50% 60%"}} /></div>
 </div>
 <div style={{borderBottom: "1px solid rgba(6,37,79,.12)"}}>
-{(v.missions || []).map((m, m_i5) => (<React.Fragment key={m_i5}>
+{(v.missions || []).map((m, m_i7) => (<React.Fragment key={m_i7}>
 <div className="acc">
 <button type="button" className="acc-b" aria-expanded={m.open} onClick={m.toggle}><span className="n tnum">{m.n}</span>{m.t}<span className="pm" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></span></button>
 {(m.open) ? (<><p className="acc-p in" style={{animationDuration: ".45s"}}>{m.b}</p></>) : null}
@@ -496,12 +554,12 @@ class PhoneHome extends React.Component {
 <p className="eb">04 — Our reach</p>
 <h2 id="m-reach-title" className="h2">From Riau <b>to the rest of Asia.</b></h2>
 <div className="seg" role="tablist" aria-label="Reach">
-{(v.reachTabs || []).map((r, r_i6) => (<React.Fragment key={r_i6}><button type="button" role="tab" className={r.cls} aria-selected={r.on} onClick={r.pick}>{r.t}</button></React.Fragment>))}
+{(v.reachTabs || []).map((r, r_i8) => (<React.Fragment key={r_i8}><button type="button" role="tab" className={r.cls} aria-selected={r.on} onClick={r.pick}>{r.t}</button></React.Fragment>))}
 </div>
 <div role="tabpanel" style={{display: "flex", flexDirection: "column", gap: "14px"}}>
 <p style={{margin: "0", fontSize: "15px", lineHeight: "1.6", color: "#57504D"}}>{v.reach.note}</p>
 <ul style={{listStyle: "none", margin: "0", padding: "0", display: "flex", flexWrap: "wrap", gap: "8px"}}>
-{(v.reach.items || []).map((i, i_i7) => (<React.Fragment key={i_i7}><li className="in" style={{display: "inline-flex", alignItems: "center", minHeight: "44px", padding: "0 16px", borderRadius: "999px", background: "#fff", boxShadow: "inset 0 0 0 1px rgba(6,37,79,.14)", fontSize: "15px", fontWeight: "500", color: "#06254F", animationDuration: ".5s"}}>{i}</li></React.Fragment>))}
+{(v.reach.items || []).map((i, i_i9) => (<React.Fragment key={i_i9}><li className="in" style={{display: "inline-flex", alignItems: "center", minHeight: "44px", padding: "0 16px", borderRadius: "999px", background: "#fff", boxShadow: "inset 0 0 0 1px rgba(6,37,79,.14)", fontSize: "15px", fontWeight: "500", color: "#06254F", animationDuration: ".5s"}}>{i}</li></React.Fragment>))}
 </ul>
 </div>
 </section>
@@ -547,11 +605,11 @@ class PhoneHome extends React.Component {
 </main>
 
 <footer className="px" style={{paddingTop: "48px", paddingBottom: "24px"}}>
-<img src="/img/logo-full.webp" alt="PT Artha Prima Humatindo \u2014 Leading in biostimulant and organic fertilizer" style={{width: "170px", height: "auto", display: "block"}} />
+<img src="/img/logo-full.webp" alt="PT Artha Prima Humatindo — Leading in biostimulant and organic fertilizer" style={{width: "170px", height: "auto", display: "block"}} />
 <div style={{marginTop: "24px", borderBottom: "1px solid rgba(6,37,79,.1)"}}>
-{(v.foot || []).map((f, f_i8) => (<React.Fragment key={f_i8}>
+{(v.foot || []).map((f, f_i10) => (<React.Fragment key={f_i10}>
 <button type="button" className="flb" aria-expanded={f.open} onClick={f.toggle}>{f.t}<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{transform: `rotate(${f.rot}deg)`, transition: "transform .3s"}}><path d="M6 9l6 6 6-6"></path></svg></button>
-{(f.open) ? (<><div className="in" style={{paddingBottom: "10px", animationDuration: ".4s"}}>{(f.links || []).map((l, l_i9) => (<React.Fragment key={l_i9}><a className="fl" href={l.h} target={l.tg} rel="noopener">{l.t}</a></React.Fragment>))}</div></>) : null}
+{(f.open) ? (<><div className="in" style={{paddingBottom: "10px", animationDuration: ".4s"}}>{(f.links || []).map((l, l_i11) => (<React.Fragment key={l_i11}><a className="fl" href={l.h} target={l.tg} rel="noopener">{l.t}</a></React.Fragment>))}</div></>) : null}
 </React.Fragment>))}
 </div>
 <div style={{marginTop: "20px", display: "flex", flexDirection: "column", gap: "10px", fontSize: "12.5px", color: "#57504D"}}>

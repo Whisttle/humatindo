@@ -237,8 +237,8 @@ class StoryProducts extends React.Component {
 </div>
 </div>
 <div className="hide-md in" style={{animationDelay: ".15s", position: "relative", height: "460px", display: "flex", alignItems: "flex-end", justifyContent: "center"}}>
-<div style={{display: "flex", flexDirection: "column", alignItems: "center", transform: "rotate(-7deg)", marginRight: "-26px", marginBottom: "40px"}}><div className="float" style={{animationDelay: "-2s"}}><img className="fade" onLoad={v.onImg} src="/img/p-calshumat.webp" alt="CALSHUMAT 500 mL" style={{height: "280px", width: "auto", display: "block", filter: "drop-shadow(0 22px 20px rgba(6,37,79,.28))"}} /></div><div className="gshadow" style={{width: "120px", animationDelay: "-2s"}}></div></div>
-<div style={{position: "relative", zIndex: "2", display: "flex", flexDirection: "column", alignItems: "center"}}><div className="float"><img className="fade" onLoad={v.onImg} src="/img/p-borohumic.webp" alt="BOROHUMIC 500 mL" style={{height: "340px", width: "auto", display: "block", filter: "drop-shadow(0 26px 22px rgba(6,37,79,.3))"}} /></div><div className="gshadow" style={{width: "150px"}}></div></div>
+<div style={{display: "flex", flexDirection: "column", alignItems: "center", transform: "rotate(-7deg)", marginRight: "-26px", marginBottom: "40px"}}><div className="float" style={{animationDelay: "-2s"}}><img className="fade" onLoad={v.onImg} src="/img/p-kasimulan.webp" alt="KASIMULAN 500 mL" style={{height: "280px", width: "auto", display: "block", filter: "drop-shadow(0 22px 20px rgba(6,37,79,.28))"}} /></div><div className="gshadow" style={{width: "120px", animationDelay: "-2s"}}></div></div>
+<div style={{position: "relative", zIndex: "2", display: "flex", flexDirection: "column", alignItems: "center"}}><div className="float"><img className="fade" onLoad={v.onImg} src="/img/p-microhumic.webp" alt="MICROHUMIC 500 mL" style={{height: "340px", width: "auto", display: "block", filter: "drop-shadow(0 26px 22px rgba(6,37,79,.3))"}} /></div><div className="gshadow" style={{width: "150px"}}></div></div>
 <div style={{display: "flex", flexDirection: "column", alignItems: "center", transform: "rotate(7deg)", marginLeft: "-26px", marginBottom: "50px"}}><div className="float" style={{animationDelay: "-4s"}}><img className="fade" onLoad={v.onImg} src="/img/p-silikamat.webp" alt="SILIKAMAT 500 mL" style={{height: "280px", width: "auto", display: "block", filter: "drop-shadow(0 22px 20px rgba(6,37,79,.28))"}} /></div><div className="gshadow" style={{width: "120px", animationDelay: "-4s"}}></div></div>
 </div>
 </div>
@@ -342,7 +342,7 @@ class StoryProducts extends React.Component {
 <div className="wrap" style={{display: "flex", flexDirection: "column", gap: "56px"}}>
 <div style={{display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 200px), 1fr))", gap: "40px"}}>
 <div style={{display: "flex", flexDirection: "column", gap: "16px"}}>
-<img src="/img/logo-full.webp" alt="PT Artha Prima Humatindo \u2014 Leading in biostimulant and organic fertilizer" style={{width: "190px", height: "auto", display: "block"}} />
+<img src="/img/logo-full.webp" alt="PT Artha Prima Humatindo — Leading in biostimulant and organic fertilizer" style={{width: "190px", height: "auto", display: "block"}} />
 <p style={{margin: "0", fontSize: "14px", lineHeight: "1.6", color: "#57504D", maxWidth: "260px"}}>Leading in biostimulant and organic fertilizer, from Riau since 2016.</p>
 </div>
 <nav aria-label="Company" style={{display: "flex", flexDirection: "column", gap: "4px"}}><h3 style={{margin: "0 0 8px", fontSize: "13px", fontWeight: "600", letterSpacing: ".1em", textTransform: "uppercase", color: "#06254F"}}>Company</h3><a className="fl" href="/about">About us</a><a className="fl" href="/">Our story</a><a className="fl" href="/about">Vision and mission</a></nav>

@@ -91,7 +91,7 @@ class StoryAbout extends React.Component {
 
 <main>
 <section aria-labelledby="ab-title" style={{position: "relative", minHeight: "780px", display: "flex", alignItems: "flex-end", background: "#2b3a1c", overflow: "hidden"}}>
-<img className="fade" onLoad={v.onImg} src="/img/moss-blue-real.webp" alt="" style={{position: "absolute", inset: "0", width: "100%", height: "100%", objectFit: "cover"}} />
+<img className="fade" onLoad={v.onImg} src="/img/lignite-raw.webp" alt="" style={{position: "absolute", inset: "0", width: "100%", height: "100%", objectFit: "cover"}} />
 <div style={{position: "absolute", inset: "0", background: "linear-gradient(180deg, rgba(4,22,44,.35) 0%, rgba(4,22,44,.2) 35%, rgba(4,22,44,.86) 100%), linear-gradient(90deg, rgba(4,22,44,.55) 0%, rgba(4,22,44,0) 65%)"}}></div>
 <div className="wrap in" style={{position: "relative", width: "100%", padding: "160px 24px 72px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 480px), 1fr))", gap: "32px 80px", alignItems: "end"}}>
 <div style={{display: "flex", flexDirection: "column", gap: "26px"}}>
@@ -110,7 +110,7 @@ class StoryAbout extends React.Component {
 </div>
 <div className="gs-up" style={{display: "flex", flexDirection: "column", gap: "18px", fontSize: "17px", lineHeight: "1.7", color: "#342C2A", paddingTop: "44px"}}>
 <p style={{margin: "0"}}>Humatindo was established in Riau in January 2016. We combine humate compounds, amino compounds, seaweed extract and essential micronutrients into complete biostimulant formulations.</p>
-<p style={{margin: "0"}}>From our head office in Pekanbaru and our branch in Tangerang, we supply government projects, businesses, retailers and plantations across Indonesia, and export to growers in seven Asian markets.</p>
+<p style={{margin: "0"}}>From our head office in Pekanbaru and our branch in Tangerang, we supply government projects, businesses, retailers and plantations across Indonesia, and export to growers in six Asian markets.</p>
 </div>
 </div>
 <div style={{display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 260px), 1fr))", gap: "40px 32px"}}>
@@ -245,7 +245,7 @@ class StoryAbout extends React.Component {
 <div className="wrap" style={{display: "flex", flexDirection: "column", gap: "56px"}}>
 <div style={{display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 200px), 1fr))", gap: "40px"}}>
 <div style={{display: "flex", flexDirection: "column", gap: "16px"}}>
-<img src="/img/logo-full.webp" alt="PT Artha Prima Humatindo \u2014 Leading in biostimulant and organic fertilizer" style={{width: "190px", height: "auto", display: "block"}} />
+<img src="/img/logo-full.webp" alt="PT Artha Prima Humatindo — Leading in biostimulant and organic fertilizer" style={{width: "190px", height: "auto", display: "block"}} />
 <p style={{margin: "0", fontSize: "14px", lineHeight: "1.6", color: "#57504D", maxWidth: "260px"}}>Leading in biostimulant and organic fertilizer, from Riau since 2016.</p>
 </div>
 <nav aria-label="Company" style={{display: "flex", flexDirection: "column", gap: "4px"}}><h3 style={{margin: "0 0 8px", fontSize: "13px", fontWeight: "600", letterSpacing: ".1em", textTransform: "uppercase", color: "#06254F"}}>Company</h3><a className="fl" href="/about">About us</a><a className="fl" href="/">Our story</a><a className="fl" href="#vision-title">Vision and mission</a><a className="fl" href="#quality-title">Quality and ISO</a></nav>

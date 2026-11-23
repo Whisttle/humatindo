@@ -9,7 +9,32 @@ import './StoryHome.css';
 class StoryHome extends React.Component {
   constructor(...a) {
     super(...a);
-    this.state = { navFloat: false, scrolly: false, menu: false };
+    this.state = { navFloat: false, scrolly: false, menu: false, slide: 0, paused: false };
+    this.setVid = (el) => { if (el) { el.muted = true; const p = el.play && el.play(); if (p && p.catch) p.catch(() => {}); } };
+    this.goSlide = (i) => { this.setState({ slide: ((i % 4) + 4) % 4 }); this.startSlides(); };
+    this.setHero = (el) => {
+      if (el === this.hero) return;
+      if (this._unbindHero) { this._unbindHero(); this._unbindHero = null; }
+      this.hero = el;
+      if (!el) return;
+      let sx = 0, sy = 0, on = false, moved = false;
+      const down = (e) => { if (e.button > 0) return; on = true; moved = false; sx = e.clientX; sy = e.clientY; };
+      const up = (e) => {
+        if (!on) return; on = false;
+        const dx = e.clientX - sx, dy = e.clientY - sy;
+        if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.2) { moved = true; this.goSlide(this.state.slide + (dx < 0 ? 1 : -1)); }
+      };
+      const cancel = () => { on = false; };
+      const click = (e) => { if (moved) { e.preventDefault(); e.stopPropagation(); moved = false; } };
+      const drag = (e) => e.preventDefault();
+      el.addEventListener('pointerdown', down); el.addEventListener('pointerup', up);
+      el.addEventListener('pointercancel', cancel); el.addEventListener('click', click, true); el.addEventListener('dragstart', drag);
+      this._unbindHero = () => {
+        el.removeEventListener('pointerdown', down); el.removeEventListener('pointerup', up);
+        el.removeEventListener('pointercancel', cancel); el.removeEventListener('click', click, true); el.removeEventListener('dragstart', drag);
+      };
+    };
+    this.togglePause = () => this.setState((s) => ({ paused: !s.paused }));
     this.setGlobe = (el) => { this.globe = el; };
     this.toggleMenu = () => this.setState((s) => ({ menu: !s.menu }));
     this.closeMenu = () => this.setState({ menu: false });
@@ -24,6 +49,12 @@ class StoryHome extends React.Component {
     this._imgTimer = setTimeout(() => { if (this.root) this.root.querySelectorAll('img.fade').forEach((im) => im.classList.add('is-loaded')); }, 2500);
     this.bootMotion();
     this.startGlobe();
+    this.startSlides();
+  }
+
+  startSlides() {
+    clearInterval(this._slT);
+    this._slT = setInterval(() => { if (this._alive && !this.state.paused) this.setState((s) => ({ slide: (s.slide + 1) % 4 })); }, 5000);
   }
 
   landDots() {
@@ -58,11 +89,11 @@ class StoryHome extends React.Component {
       }
       return pts;
     };
-    const exportsL = [['Malaysia', 3.14, 101.69, 16, 6], ['Thailand', 13.75, 100.5, -14, -24], ['Vietnam', 16.0, 107.8, 14, -26], ['Philippines', 14.6, 121.0, 16, 10], ['Bangladesh', 23.8, 90.4, -14, -20], ['Sri Lanka', 7.3, 80.6, -16, 4], ['Japan', 35.7, 139.7, 14, -18]]
+    const exportsL = [['Malaysia', 3.14, 101.69, 16, 6], ['Thailand', 13.75, 100.5, -14, -24], ['Vietnam', 16.0, 107.8, 14, -26], ['Philippines', 14.6, 121.0, 16, 10], ['Bangladesh', 23.8, 90.4, -14, -20], ['Sri Lanka', 7.3, 80.6, -16, 4]]
       .map((d, i) => { const v = vec(d[1], d[2]); return { name: d[0], v, lx: d[3], ly: d[4], pts: mkArc(v, 0.85, 72), off: 0.5 + i * 0.32, per: 4.2 + (i % 3) * 0.5, kind: 'x' }; });
     const domestic = [['Java', -6.2, 106.8], ['Kalimantan', -1.27, 116.8], ['Sulawesi', -5.14, 119.4]]
       .map((d, i) => { const v = vec(d[1], d[2]); return { name: d[0], v, pts: mkArc(v, 0.9, 40), off: i * 0.25, per: 3.0 + i * 0.4, kind: 'd' }; });
-    const routes = domestic.concat(exportsL);
+    const routes = exportsL;
     const grat = [];
     for (let lo = -180; lo < 180; lo += 20) { const ln = []; for (let la = -80; la <= 80; la += 4) ln.push(vec(la, lo)); grat.push(ln); }
     for (let la = -60; la <= 60; la += 20) { const ln = []; for (let lo = -180; lo <= 180; lo += 4) ln.push(vec(la, lo)); grat.push(ln); }
@@ -122,8 +153,8 @@ class StoryHome extends React.Component {
         if (Math.abs(drag.vlon) < 0.05 && Math.abs(drag.vlat) < 0.05) { drag.lon *= 0.975; drag.lat *= 0.975; }
         if (reduce && (Math.abs(drag.lon) > 0.05 || Math.abs(drag.lat) > 0.05)) this._needs = true;
       }
-      const lonC = 104 + (reduce ? 0 : 20 * Math.sin(t * 0.11)) + drag.lon;
-      const latC = Math.max(-40, Math.min(55, 12 + (reduce ? 0 : 4 * Math.sin(t * 0.07)) + drag.lat));
+      const lonC = 122 + (reduce ? 0 : 8 * Math.sin(t * 0.11)) + drag.lon;
+      const latC = Math.max(-40, Math.min(55, -4 + (reduce ? 0 : 3 * Math.sin(t * 0.07)) + drag.lat));
       const lon0 = lonC * R, lat0 = latC * R;
       const cl = Math.cos(lon0), sl = Math.sin(lon0), cp = Math.cos(lat0), sp = Math.sin(lat0);
       const proj = (v) => {
@@ -298,7 +329,7 @@ class StoryHome extends React.Component {
 
   componentDidUpdate() { this.markImgs(); }
 
-  componentWillUnmount() { this._alive = false; cancelAnimationFrame(this._raf); if (this._io) this._io.disconnect(); if (this._unbindGlobe) this._unbindGlobe(); clearTimeout(this._imgTimer); if (this._navSc && this._onNav) this._navSc.removeEventListener('scroll', this._onNav); if (this.ctx) this.ctx.revert(); }
+  componentWillUnmount() { this._alive = false; clearInterval(this._slT); if (this._unbindHero) this._unbindHero(); cancelAnimationFrame(this._raf); if (this._io) this._io.disconnect(); if (this._unbindGlobe) this._unbindGlobe(); clearTimeout(this._imgTimer); if (this._navSc && this._onNav) this._navSc.removeEventListener('scroll', this._onNav); if (this.ctx) this.ctx.revert(); }
 
   markImgs() { if (this.root) this.root.querySelectorAll('img.fade').forEach((im) => { if (im.complete && im.naturalWidth > 0) im.classList.add('is-loaded'); }); }
 
@@ -356,7 +387,23 @@ class StoryHome extends React.Component {
   renderVals() {
     const purpose = 'Healthy soil is where every harvest begins. We exist to *restore *it, helping Asia move toward *regenerative *agriculture with biostimulants that are high-quality, consistent and made from *Indonesia\'s *own *resources.';
     const words = purpose.split(' ').map((w) => ({ w: w.charAt(0) === '*' ? w.slice(1) : w, cls: w.charAt(0) === '*' ? 'rw hl' : 'rw' }));
+    // Hero slider. Put an uploaded video url (/_blob/…) in FARMLAND_VIDEO / MINING_VIDEO; until then each slot shows its still image.
+    const FARMLAND_VIDEO = '/video/farmland.mp4', MINING_VIDEO = '/video/mining.mp4';
+    const cur = this.state.slide;
+    const slides = [
+      { name: 'Coal mining video', src: '/img/mining-poster.jpg', video: MINING_VIDEO },
+      { name: 'Moss field', src: '/img/moss-blue-real.webp', video: '' },
+      { name: 'Farm land video', src: '/img/farmland-poster.jpg', video: FARMLAND_VIDEO },
+      { name: 'Lignite coal', src: '/img/lignite-coal.webp', video: '' }
+    ].map((s, i) => ({
+      vid: !!s.video, img: !s.video, src: s.video || s.src, poster: s.src,
+      cls: i === cur ? 'hs on' : 'hs', dot: i === cur ? 'd on' : 'd', on: i === cur ? 'true' : 'false',
+      label: 'Show background ' + (i + 1) + ' of 4: ' + s.name, go: () => this.goSlide(i)
+    }));
     return {
+      slides, setVid: this.setVid, togglePause: this.togglePause, setHero: this.setHero,
+      pauseLabel: this.state.paused ? 'Play background slideshow' : 'Pause background slideshow',
+      pauseIcon: this.state.paused ? 'M8 5.5v13l11-6.5z' : 'M7 5h3.5v14H7zM13.5 5H17v14h-3.5z',
       setRoot: this.setRoot, onImg: this.onImg, words, setGlobe: this.setGlobe,
       toggleMenu: this.toggleMenu, closeMenu: this.closeMenu, menu: this.state.menu,
       hdrCls: this.state.navFloat ? 'hdr float' : 'hdr',
@@ -372,8 +419,19 @@ class StoryHome extends React.Component {
 <Nav active={"home"} cta={"#contact"} preview={false} />
 
 <main>
-<section aria-labelledby="hero-title" style={{position: "relative", minHeight: "880px", display: "flex", flexDirection: "column", justifyContent: "flex-end", background: "#2b3a1c", overflow: "hidden"}}>
-<img className="fade" onLoad={v.onImg} src="/img/moss-blue-real.webp" alt="" style={{position: "absolute", inset: "0", width: "100%", height: "100%", objectFit: "cover"}} />
+<section ref={v.setHero} aria-labelledby="hero-title" aria-roledescription="carousel" style={{touchAction: "pan-y", cursor: "grab", position: "relative", minHeight: "880px", display: "flex", flexDirection: "column", justifyContent: "flex-end", background: "#2b3a1c", overflow: "hidden"}}>
+<div aria-hidden="true" style={{position: "absolute", inset: "0"}}>
+{(v.slides || []).map((s, s_i1) => (<React.Fragment key={s_i1}>
+<div className={s.cls}>
+{(s.vid) ? (<><video ref={v.setVid} src={s.src} poster={s.poster} muted autoPlay loop playsInline style={{position: "absolute", inset: "0", width: "100%", height: "100%", objectFit: "cover"}}></video></>) : null}
+{(s.img) ? (<><img src={s.src} alt="" style={{position: "absolute", inset: "0", width: "100%", height: "100%", objectFit: "cover"}} /></>) : null}
+</div>
+</React.Fragment>))}
+</div>
+<div style={{position: "absolute", zIndex: "3", top: "104px", right: "max(24px, calc((100% - 1360px) / 2 + 24px))", display: "flex", alignItems: "center", gap: "2px", padding: "0 4px", borderRadius: "999px", background: "rgba(4,22,44,.35)", WebkitBackdropFilter: "blur(12px)", backdropFilter: "blur(12px)"}}>
+{(v.slides || []).map((s, s_i2) => (<React.Fragment key={s_i2}><button type="button" className="hdot" aria-label={s.label} aria-pressed={s.on} onClick={s.go}><span className={s.dot}></span></button></React.Fragment>))}
+<button type="button" className="hdot" aria-label={v.pauseLabel} onClick={v.togglePause}><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d={v.pauseIcon}></path></svg></button>
+</div>
 <div style={{position: "absolute", inset: "0", background: "linear-gradient(180deg, rgba(4,22,44,.35) 0%, rgba(4,22,44,.22) 35%, rgba(4,22,44,.86) 100%), linear-gradient(90deg, rgba(4,22,44,.55) 0%, rgba(4,22,44,0) 65%)"}}></div>
 <div className="wrap" style={{position: "relative", width: "100%", padding: "160px 24px 40px", display: "flex", flexDirection: "column", gap: "72px"}}>
 <div className="in" style={{display: "flex", flexDirection: "column", gap: "28px", maxWidth: "980px"}}>
@@ -394,22 +452,17 @@ class StoryHome extends React.Component {
 </div>
 </section>
 
-<section className={v.rvCls} aria-labelledby="purpose-label" style={{background: "#F4F7FA"}}>
-<div className="rv-in"><div className="wrap" style={{width: "100%", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 480px), 1fr))", gap: "40px 64px", alignItems: "center"}}>
-<div style={{display: "flex", flexDirection: "column", gap: "32px"}}>
+<section className={`${v.rvCls} pur-sec`} aria-labelledby="purpose-label" style={{background: "#F4F7FA"}}>
+<div className="rv-in pur-in"><div className="wrap" style={{width: "100%"}}>
+<div className="pur-txt">
 <p id="purpose-label" className="eb">Our purpose</p>
-<p style={{margin: "0", fontSize: "clamp(28px, 3.2vw, 50px)", lineHeight: "1.18", letterSpacing: "-.025em", fontWeight: "300", color: "#06254F"}}>{(v.words || []).map((w, w_i1) => (<React.Fragment key={w_i1}><span className={w.cls}>{w.w}</span></React.Fragment>))}</p>
+<p style={{margin: "0", fontSize: "clamp(28px, 3vw, 46px)", lineHeight: "1.18", letterSpacing: "-.025em", fontWeight: "300", color: "#06254F"}}>{(v.words || []).map((w, w_i3) => (<React.Fragment key={w_i3}><span className={w.cls}>{w.w}</span></React.Fragment>))}</p>
 </div>
-<figure style={{margin: "0", display: "flex", flexDirection: "column", alignItems: "center", gap: "14px"}}>
-<canvas ref={v.setGlobe} role="img" aria-label="Interactive globe: a signal spreads from Pekanbaru, Sumatra across the world, with routes to Java, Kalimantan and Sulawesi and to export markets in Malaysia, Thailand, Vietnam, the Philippines, Bangladesh, Sri Lanka and Japan. Drag to rotate." style={{display: "block", width: "100%", maxWidth: "640px", aspectRatio: "1 / 1", touchAction: "pan-y", cursor: "grab"}}></canvas>
-<figcaption style={{display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "10px 22px", fontSize: "13.5px", color: "#342C2A"}}>
-<span style={{display: "inline-flex", alignItems: "center", gap: "8px"}}><span style={{width: "10px", height: "10px", borderRadius: "50%", background: "#fff", boxShadow: "0 0 0 2.5px #00A2EA, 0 0 10px #00C8FF"}}></span>Pekanbaru, Sumatra</span>
-<span style={{display: "inline-flex", alignItems: "center", gap: "8px"}}><span style={{width: "22px", height: "2px", borderRadius: "2px", background: "#0B3A73"}}></span>Java, Kalimantan, Sulawesi</span>
-<span style={{display: "inline-flex", alignItems: "center", gap: "8px"}}><span style={{width: "22px", height: "2px", borderRadius: "2px", background: "#00A2EA"}}></span>7 export markets</span>
-<span style={{color: "#57504D"}}>Drag to rotate</span>
-</figcaption>
+</div>
+<figure className="pur-globe" style={{display: "flex", flexDirection: "column", alignItems: "center", gap: "14px"}}>
+<canvas ref={v.setGlobe} role="img" aria-label="Interactive globe: a signal spreads from Pekanbaru, Sumatra, with routes to Malaysia, Thailand, Vietnam, the Philippines, Sri Lanka and Bangladesh. Drag to rotate." style={{display: "block", width: "100%", aspectRatio: "1 / 1", touchAction: "pan-y", cursor: "grab"}}></canvas>
 </figure>
-</div></div>
+</div>
 </section>
 
 <section aria-labelledby="vision-title" style={{position: "relative", background: "#fff", padding: "0 0 24px"}}>
@@ -445,14 +498,14 @@ class StoryHome extends React.Component {
 </div>
 <figure className="gs-up" style={{margin: "72px 0 0", position: "relative"}}>
 <div style={{position: "relative", height: "clamp(220px, 26vw, 380px)", overflow: "hidden", background: "#e9e4dc"}}>
-<img className="fade" onLoad={v.onImg} src="/img/lignite.webp" alt="Raw lignite from Sumatra" style={{position: "absolute", inset: "0", width: "100%", height: "100%", objectFit: "cover", objectPosition: "50% 80%"}} />
+<img className="fade" onLoad={v.onImg} src="/img/lignite-raw.webp" alt="Raw lignite from Sumatra" style={{position: "absolute", inset: "0", width: "100%", height: "100%", objectFit: "cover", objectPosition: "50% 80%"}} />
 </div>
 <figcaption className="wrap" style={{padding: "14px 24px 0", fontSize: "13px", color: "#57504D"}}>Raw lignite from Sumatra, the local source of our humic compounds.</figcaption>
 </figure>
 <div className="wrap" style={{padding: "64px 24px 130px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))", gap: "32px"}}>
 <div className="stat gs-up"><span className="tnum" style={{fontSize: "40px", fontWeight: "300", letterSpacing: "-.02em", color: "#06254F"}}>2016</span><span style={{fontSize: "15px", lineHeight: "1.55", color: "#342C2A"}}>Founded in Riau, with headquarters in Pekanbaru</span></div>
 <div className="stat gs-up"><span style={{fontSize: "40px", fontWeight: "300", letterSpacing: "-.02em", color: "#06254F"}}>ISO 9001:2015</span><span style={{fontSize: "15px", lineHeight: "1.55", color: "#342C2A"}}>Quality management certified by SGS</span></div>
-<div className="stat gs-up"><span style={{fontSize: "40px", fontWeight: "300", letterSpacing: "-.02em", color: "#06254F"}}>Today</span><span style={{fontSize: "15px", lineHeight: "1.55", color: "#342C2A"}}>In use across Indonesia and exported to seven Asian markets</span></div>
+<div className="stat gs-up"><span style={{fontSize: "40px", fontWeight: "300", letterSpacing: "-.02em", color: "#06254F"}}>Today</span><span style={{fontSize: "15px", lineHeight: "1.55", color: "#342C2A"}}>In use across Indonesia and exported to six Asian markets</span></div>
 </div>
 </section>
 
@@ -487,7 +540,7 @@ class StoryHome extends React.Component {
 <div style={{marginTop: "48px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 260px), 1fr))", gap: "40px 32px"}}>
 <div className="stat gs-up"><span className="tnum" style={{fontSize: "clamp(44px, 4.4vw, 64px)", lineHeight: "1", fontWeight: "300", letterSpacing: "-.035em", color: "#06254F"}}>3,000,000 L</span><span style={{fontSize: "15px", lineHeight: "1.55", color: "#342C2A"}}>Biostimulant production capacity each year</span></div>
 <div className="stat gs-up"><span className="tnum" style={{fontSize: "clamp(44px, 4.4vw, 64px)", lineHeight: "1", fontWeight: "300", letterSpacing: "-.035em", color: "#06254F"}}>9</span><span style={{fontSize: "15px", lineHeight: "1.55", color: "#342C2A"}}>Biostimulant formulations across two product lines</span></div>
-<div className="stat gs-up"><span className="tnum" style={{fontSize: "clamp(44px, 4.4vw, 64px)", lineHeight: "1", fontWeight: "300", letterSpacing: "-.035em", color: "#06254F"}}>7</span><span style={{fontSize: "15px", lineHeight: "1.55", color: "#342C2A"}}>Export markets across Asia</span></div>
+<div className="stat gs-up"><span className="tnum" style={{fontSize: "clamp(44px, 4.4vw, 64px)", lineHeight: "1", fontWeight: "300", letterSpacing: "-.035em", color: "#06254F"}}>6</span><span style={{fontSize: "15px", lineHeight: "1.55", color: "#342C2A"}}>Export markets across Asia</span></div>
 <div className="stat gs-up"><span className="tnum" style={{fontSize: "clamp(44px, 4.4vw, 64px)", lineHeight: "1", fontWeight: "300", letterSpacing: "-.035em", color: "#06254F"}}>4 years</span><span style={{fontSize: "15px", lineHeight: "1.55", color: "#342C2A"}}>Shelf life of up to four years for our humic formulations</span></div>
 </div>
 </section>
@@ -496,7 +549,7 @@ class StoryHome extends React.Component {
 <div className="wrap" style={{padding: "0 24px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 440px), 1fr))", gap: "56px 88px", alignItems: "start"}}>
 <figure className="gs-up" style={{margin: "0", display: "flex", flexDirection: "column", gap: "14px"}}>
 <div style={{position: "relative", height: "clamp(460px, 52vw, 760px)", borderRadius: "24px", overflow: "hidden", background: "#b9c8a4"}}>
-<img className="fade" onLoad={v.onImg} src="/img/farmer.webp" alt="A rice farmer standing in his paddy field" style={{position: "absolute", inset: "0", width: "100%", height: "100%", objectFit: "cover", objectPosition: "50% 30%"}} />
+<img className="fade" onLoad={v.onImg} src="/img/farmer-tree.jpg" alt="A smiling farmer reaching up to tend the branches of a fruit tree" style={{position: "absolute", inset: "0", width: "100%", height: "100%", objectFit: "cover", objectPosition: "50% 60%"}} />
 </div>
 <figcaption style={{fontSize: "13px", color: "#57504D"}}>Healthy soil starts with the people who work it.</figcaption>
 </figure>
@@ -522,7 +575,7 @@ class StoryHome extends React.Component {
 <p className="eb">04 — Our reach</p>
 <h2 id="reach-title" style={{margin: "0", fontSize: "clamp(40px, 5vw, 76px)", lineHeight: "1.02", letterSpacing: "-.035em", fontWeight: "300", color: "#06254F"}}>From Riau <span style={{fontWeight: "600"}}>to the rest of Asia.</span></h2>
 </div>
-<p style={{margin: "0", fontSize: "17px", lineHeight: "1.7", color: "#342C2A"}}>Our products are used across Indonesia's main islands and travel to growers in seven export markets, through partnerships with agribusiness and agrochemical companies.</p>
+<p style={{margin: "0", fontSize: "17px", lineHeight: "1.7", color: "#342C2A"}}>Our products are used across Indonesia's main islands and travel to growers in six export markets, through partnerships with agribusiness and agrochemical companies.</p>
 </div>
 <div style={{display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 400px), 1fr))", gap: "48px 80px"}}>
 <div className="gs-up" style={{display: "flex", flexDirection: "column", gap: "18px"}}>
@@ -531,7 +584,7 @@ class StoryHome extends React.Component {
 </div>
 <div className="gs-up" style={{display: "flex", flexDirection: "column", gap: "18px"}}>
 <h3 style={{margin: "0", fontSize: "13px", fontWeight: "600", letterSpacing: ".14em", textTransform: "uppercase", color: "#57504D"}}>Export markets</h3>
-<p className="place" style={{margin: "0", color: "#0070AC"}}>Malaysia · Thailand · Vietnam · the Philippines · Bangladesh · Sri Lanka · Japan</p>
+<p className="place" style={{margin: "0", color: "#0070AC"}}>Malaysia · Thailand · Vietnam · the Philippines · Bangladesh · Sri Lanka</p>
 </div>
 </div>
 <div className="gs-up" style={{display: "flex", flexDirection: "column", gap: "18px", paddingTop: "32px", borderTop: "1px solid rgba(6,37,79,.12)"}}>
@@ -625,7 +678,7 @@ class StoryHome extends React.Component {
 <div className="wrap" style={{display: "flex", flexDirection: "column", gap: "56px"}}>
 <div style={{display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 200px), 1fr))", gap: "40px"}}>
 <div style={{display: "flex", flexDirection: "column", gap: "16px"}}>
-<img src="/img/logo-full.webp" alt="PT Artha Prima Humatindo \u2014 Leading in biostimulant and organic fertilizer" style={{width: "190px", height: "auto", display: "block"}} />
+<img src="/img/logo-full.webp" alt="PT Artha Prima Humatindo — Leading in biostimulant and organic fertilizer" style={{width: "190px", height: "auto", display: "block"}} />
 <p style={{margin: "0", fontSize: "14px", lineHeight: "1.6", color: "#57504D", maxWidth: "260px"}}>Leading in biostimulant and organic fertilizer, from Riau since 2016.</p>
 </div>
 <nav aria-label="Company" style={{display: "flex", flexDirection: "column", gap: "4px"}}><h3 style={{margin: "0 0 8px", fontSize: "13px", fontWeight: "600", letterSpacing: ".1em", textTransform: "uppercase", color: "#06254F"}}>Company</h3><a className="flink" href="/about">About us</a><a className="flink" href="#story">Our story</a><a className="flink" href="#commitment">Vision and mission</a><a className="flink" href="#science">Quality and science</a></nav>
