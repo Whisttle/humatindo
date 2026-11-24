@@ -470,6 +470,7 @@ class StoryHome extends React.Component {
 <a className="btn btn-o" href="https://www.youtube.com/watch?v=hVMLSypNfac" target="_blank" rel="noopener"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"></path></svg>Watch our company film</a>
 </div>
 </div>
+<div className="iso-b" style={{position: "absolute", right: "24px", bottom: "33px", display: "flex", alignItems: "center", gap: "12px", padding: "8px 18px 8px 8px", borderRadius: "16px", background: "#fff"}}><img src="/img/iso-sgs.webp" alt="SGS ISO 9001 system certification" style={{width: "48px", height: "48px", objectFit: "contain"}} /><span style={{display: "flex", flexDirection: "column", gap: "2px"}}><span style={{fontSize: "14px", fontWeight: "600", color: "#06254F"}}>ISO 9001:2015 certified</span><span style={{fontSize: "12.5px", color: "#57504D"}}>Quality management · SGS</span></span></div>
 
 </div>
 </section>
@@ -705,7 +706,6 @@ class StoryHome extends React.Component {
 </div>
 <div style={{paddingTop: "24px", borderTop: "1px solid rgba(6,37,79,.12)", display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: "16px", fontSize: "13px", color: "#57504D"}}>
 <span>© 2026 PT Artha Prima Humatindo. All rights reserved.</span>
-<span style={{display: "flex", alignItems: "center", gap: "10px"}}><img src="/img/iso-sgs.webp" alt="SGS ISO 9001 system certification" style={{width: "40px", height: "40px", objectFit: "contain"}} />ISO 9001:2015 · SGS</span>
 <a href="#contact" style={{color: "#57504D"}}>Privacy policy</a>
 </div>
 </div>

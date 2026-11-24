@@ -476,6 +476,7 @@ class PhoneHome extends React.Component {
 <a className="btn btn-w" href="#m-story">Discover our story</a>
 <a className="btn btn-o" href="https://www.youtube.com/watch?v=hVMLSypNfac" target="_blank" rel="noopener"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"></path></svg>Company film</a>
 </div>
+<div className="iso-b" style={{alignSelf: "flex-start", display: "flex", alignItems: "center", gap: "12px", padding: "8px 18px 8px 8px", borderRadius: "16px", background: "#fff"}}><img src="/img/iso-sgs.webp" alt="SGS ISO 9001 system certification" style={{width: "40px", height: "40px", objectFit: "contain"}} /><span style={{display: "flex", flexDirection: "column", gap: "2px"}}><span style={{fontSize: "14px", fontWeight: "600", color: "#06254F"}}>ISO 9001:2015 certified</span><span style={{fontSize: "12.5px", color: "#57504D"}}>Quality management · SGS</span></span></div>
 </div>
 
 </section>
@@ -629,7 +630,6 @@ class PhoneHome extends React.Component {
 </React.Fragment>))}
 </div>
 <div style={{marginTop: "20px", display: "flex", flexDirection: "column", gap: "10px", fontSize: "12.5px", color: "#57504D"}}>
-<span style={{display: "flex", alignItems: "center", gap: "10px"}}><img src="/img/iso-sgs.webp" alt="SGS ISO 9001 system certification" style={{width: "36px", height: "36px", objectFit: "contain"}} />ISO 9001:2015 · SGS</span>
 <span>© 2026 PT Artha Prima Humatindo. All rights reserved.</span>
 </div>
 </footer>
