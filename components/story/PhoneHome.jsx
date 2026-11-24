@@ -26,7 +26,7 @@ class PhoneHome extends React.Component {
     if (typeof document !== 'undefined' && !this._visBound) { this._visBound = true; this._onVis = () => { if (!document.hidden) this._playAll(); }; document.addEventListener('visibilitychange', this._onVis); }
     this.setVid = (el) => { if (el) { if (!el._pb) { el._pb = 1; el.addEventListener('playing', () => el.classList.add('playing')); } if (!el.paused && el.readyState > 2) el.classList.add('playing'); this._vids.add(el); el.setAttribute('playsinline', ''); el.setAttribute('webkit-playsinline', ''); el.preload = 'auto'; this._tryPlay(el); el.addEventListener('canplay', () => this._tryPlay(el), { once: true }); } };
     this.togglePause = () => this.setState((s) => ({ paused: !s.paused }));
-    this.goSlide = (i) => { this.setState({ slide: ((i % 4) + 4) % 4 }); this.startSlides(); };
+    this.goSlide = (i) => { this.setState({ slide: ((i % 5) + 5) % 5 }); this.startSlides(); };
     this.setHero = (el) => {
       if (el === this.hero) return;
       if (this._unbindHero) { this._unbindHero(); this._unbindHero = null; }
@@ -64,7 +64,7 @@ class PhoneHome extends React.Component {
 
   startSlides() {
     clearInterval(this._slT);
-    this._slT = setInterval(() => { if (this._alive && !this.state.paused) this.setState((s) => ({ slide: (s.slide + 1) % 4 })); }, 5000);
+    this._slT = setInterval(() => { if (this._alive && !this.state.paused) this.setState((s) => ({ slide: (s.slide + 1) % 5 })); }, 5000);
   }
 
   componentDidMount() {
@@ -427,6 +427,7 @@ class PhoneHome extends React.Component {
     // Hero slider (same as desktop). Videos play muted on loop; the still shows while each loads.
     const cur = this.state.slide;
     const slides = [
+      { name: 'Seedling and roots at sunrise', src: '/img/grass-roots.webp', video: '' },
       { name: 'Coal mining video', src: '/img/mining-poster.jpg', video: '/video/mining.mp4' },
       { name: 'Moss field', src: '/img/moss-blue-real.webp', video: '' },
       { name: 'Farm land video', src: '/img/farmland-poster.jpg', video: '/video/farmland.mp4' },
