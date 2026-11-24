@@ -66,7 +66,7 @@ class PhoneAbout extends React.Component {
     const fmt = (n) => Math.round(n).toLocaleString('en-US');
     const stats = [
       { v: s.prog >= 1 ? '2016' : String(Math.round(1990 + 26 * p)), l: 'Established in Riau' },
-      { v: fmt(3000000 * p) + ' L', l: 'Biostimulant capacity each year' },
+      { v: fmt(5000000 * p) + ' L', l: 'Biostimulant capacity each year' },
       { v: fmt(9 * p), l: 'Formulations in two lines' },
       { v: fmt(5 * p), l: 'Business segments served' }
     ];

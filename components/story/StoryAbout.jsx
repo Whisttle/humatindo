@@ -115,7 +115,7 @@ class StoryAbout extends React.Component {
 </div>
 <div style={{display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 260px), 1fr))", gap: "40px 32px"}}>
 <div className="stat gs-up"><span className="tnum" style={{fontSize: "clamp(40px, 4vw, 56px)", lineHeight: "1", fontWeight: "300", letterSpacing: "-.035em", color: "#06254F"}}>2016</span><span style={{fontSize: "15px", lineHeight: "1.55", color: "#342C2A"}}>Established in Riau, Indonesia</span></div>
-<div className="stat gs-up"><span className="tnum" style={{fontSize: "clamp(40px, 4vw, 56px)", lineHeight: "1", fontWeight: "300", letterSpacing: "-.035em", color: "#06254F"}}>3,000,000 L</span><span style={{fontSize: "15px", lineHeight: "1.55", color: "#342C2A"}}>Biostimulant production capacity each year</span></div>
+<div className="stat gs-up"><span className="tnum" style={{fontSize: "clamp(40px, 4vw, 56px)", lineHeight: "1", fontWeight: "300", letterSpacing: "-.035em", color: "#06254F"}}>5,000,000 L</span><span style={{fontSize: "15px", lineHeight: "1.55", color: "#342C2A"}}>Biostimulant production capacity each year</span></div>
 <div className="stat gs-up"><span className="tnum" style={{fontSize: "clamp(40px, 4vw, 56px)", lineHeight: "1", fontWeight: "300", letterSpacing: "-.035em", color: "#06254F"}}>9</span><span style={{fontSize: "15px", lineHeight: "1.55", color: "#342C2A"}}>Biostimulant formulations across two product lines</span></div>
 <div className="stat gs-up"><span className="tnum" style={{fontSize: "clamp(40px, 4vw, 56px)", lineHeight: "1", fontWeight: "300", letterSpacing: "-.035em", color: "#06254F"}}>5</span><span style={{fontSize: "15px", lineHeight: "1.55", color: "#342C2A"}}>Business segments, from government projects to export</span></div>
 </div>

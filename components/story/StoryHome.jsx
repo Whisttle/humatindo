@@ -10,7 +10,19 @@ class StoryHome extends React.Component {
   constructor(...a) {
     super(...a);
     this.state = { navFloat: false, scrolly: false, menu: false, slide: 0, paused: false };
-    this.setVid = (el) => { if (el) { el.muted = true; const p = el.play && el.play(); if (p && p.catch) p.catch(() => {}); } };
+    // Autoplay can be blocked (e.g. iOS Low Power Mode, data saver). Keep trying: on load, on first touch/click, and on tab return.
+    this._vids = this._vids || new Set();
+    this._tryPlay = (v) => { if (!v || !v.isConnected) return; v.muted = true; v.defaultMuted = true; v.playsInline = true; if (!v.paused) return; const p = v.play && v.play(); if (p && p.catch) p.catch(() => this._armUnlock()); };
+    this._playAll = () => { this._vids.forEach((v) => { if (!v.isConnected) this._vids.delete(v); else this._tryPlay(v); }); };
+    this._armUnlock = () => {
+      if (this._unlockArmed || typeof document === 'undefined') return; this._unlockArmed = true;
+      const evs = ['touchstart', 'touchend', 'pointerdown', 'click', 'keydown', 'scroll'];
+      const go = () => { this._playAll(); if ([...this._vids].every((v) => !v.paused)) { evs.forEach((e) => document.removeEventListener(e, go, true)); this._unlockArmed = false; } };
+      evs.forEach((e) => document.addEventListener(e, go, { capture: true, passive: true }));
+      this._unlockOff = () => evs.forEach((e) => document.removeEventListener(e, go, true));
+    };
+    if (typeof document !== 'undefined' && !this._visBound) { this._visBound = true; this._onVis = () => { if (!document.hidden) this._playAll(); }; document.addEventListener('visibilitychange', this._onVis); }
+    this.setVid = (el) => { if (el) { if (!el._pb) { el._pb = 1; el.addEventListener('playing', () => el.classList.add('playing')); } if (!el.paused && el.readyState > 2) el.classList.add('playing'); this._vids.add(el); el.setAttribute('playsinline', ''); el.setAttribute('webkit-playsinline', ''); el.preload = 'auto'; this._tryPlay(el); el.addEventListener('canplay', () => this._tryPlay(el), { once: true }); } };
     this.goSlide = (i) => { this.setState({ slide: ((i % 4) + 4) % 4 }); this.startSlides(); };
     this.setHero = (el) => {
       if (el === this.hero) return;
@@ -43,6 +55,9 @@ class StoryHome extends React.Component {
   }
 
   componentDidMount() {
+    try { const l = window.__hmLang || localStorage.getItem('hm_lang'); if (l === 'id') this.setState({ lang: 'id' }); } catch (e) {}
+    this._onLangP = (e) => { const l = e && e.detail === 'id' ? 'id' : 'en'; if (l !== this.state.lang) this.setState({ lang: l }, () => requestAnimationFrame(() => this.buildWords())); };
+    window.addEventListener('hm-lang', this._onLangP);
     this._alive = true;
     setTimeout(() => this.bindNav(), 0);
     this.markImgs();
@@ -329,7 +344,7 @@ class StoryHome extends React.Component {
 
   componentDidUpdate() { this.markImgs(); }
 
-  componentWillUnmount() { this._alive = false; clearInterval(this._slT); if (this._unbindHero) this._unbindHero(); cancelAnimationFrame(this._raf); if (this._io) this._io.disconnect(); if (this._unbindGlobe) this._unbindGlobe(); clearTimeout(this._imgTimer); if (this._navSc && this._onNav) this._navSc.removeEventListener('scroll', this._onNav); if (this.ctx) this.ctx.revert(); }
+  componentWillUnmount() { window.removeEventListener('hm-lang', this._onLangP); if (this.wctx) this.wctx.revert(); if (this._unlockOff) this._unlockOff(); if (this._onVis) document.removeEventListener('visibilitychange', this._onVis); this._alive = false; clearInterval(this._slT); if (this._unbindHero) this._unbindHero(); cancelAnimationFrame(this._raf); if (this._io) this._io.disconnect(); if (this._unbindGlobe) this._unbindGlobe(); clearTimeout(this._imgTimer); if (this._navSc && this._onNav) this._navSc.removeEventListener('scroll', this._onNav); if (this.ctx) this.ctx.revert(); }
 
   markImgs() { if (this.root) this.root.querySelectorAll('img.fade').forEach((im) => { if (im.complete && im.naturalWidth > 0) im.classList.add('is-loaded'); }); }
 
@@ -377,15 +392,27 @@ class StoryHome extends React.Component {
     if (this.ctx) this.ctx.revert();
     const root = this.root;
     this.ctx = g.context(() => {
+      root.querySelectorAll('.gs-up').forEach((el) => g.from(el, { y: 40, opacity: 0, duration: 1.1, ease: 'power3.out', scrollTrigger: { trigger: el, start: 'top 90%', once: true } }));
+    }, root);
+    this.buildWords();
+  }
+
+  buildWords() {
+    const g = window.gsap, ST = window.ScrollTrigger;
+    if (!g || !ST || !this.root || !this.state.scrolly) return;
+    if (this.wctx) this.wctx.revert();
+    const root = this.root;
+    this.wctx = g.context(() => {
       const wrap = root.querySelector('.rv'), words = root.querySelectorAll('.rw');
       if (wrap && words.length) g.fromTo(words, { opacity: 0.14 }, { opacity: 1, ease: 'none', stagger: 0.1, duration: 0.5, scrollTrigger: { trigger: wrap, start: 'top top', end: 'bottom bottom', scrub: 0.6 } });
-      root.querySelectorAll('.gs-up').forEach((el) => g.from(el, { y: 40, opacity: 0, duration: 1.1, ease: 'power3.out', scrollTrigger: { trigger: el, start: 'top 90%', once: true } }));
     }, root);
     ST.refresh();
   }
 
   renderVals() {
-    const purpose = 'Healthy soil is where every harvest begins. We exist to *restore *it, helping Asia move toward *regenerative *agriculture with biostimulants that are high-quality, consistent and made from *Indonesia\'s *own *resources.';
+    const purposeId = 'Tanah yang sehat adalah awal dari setiap panen. Kami hadir untuk *memulihkannya, membantu Asia menuju *pertanian *regeneratif dengan biostimulan yang berkualitas tinggi, konsisten, dan dibuat dari *sumber *daya *Indonesia *sendiri.';
+    const purposeEn = 'Healthy soil is where every harvest begins. We exist to *restore *it, helping Asia move toward *regenerative *agriculture with biostimulants that are high-quality, consistent and made from *Indonesia\'s *own *resources.';
+    const purpose = this.state.lang === 'id' ? purposeId : purposeEn;
     const words = purpose.split(' ').map((w) => ({ w: w.charAt(0) === '*' ? w.slice(1) : w, cls: w.charAt(0) === '*' ? 'rw hl' : 'rw' }));
     // Hero slider. Put an uploaded video url (/_blob/…) in FARMLAND_VIDEO / MINING_VIDEO; until then each slot shows its still image.
     const FARMLAND_VIDEO = '/video/farmland.mp4', MINING_VIDEO = '/video/mining.mp4';
@@ -423,7 +450,7 @@ class StoryHome extends React.Component {
 <div aria-hidden="true" style={{position: "absolute", inset: "0"}}>
 {(v.slides || []).map((s, s_i1) => (<React.Fragment key={s_i1}>
 <div className={s.cls}>
-{(s.vid) ? (<><video ref={v.setVid} src={s.src} poster={s.poster} muted autoPlay loop playsInline style={{position: "absolute", inset: "0", width: "100%", height: "100%", objectFit: "cover"}}></video></>) : null}
+{(s.vid) ? (<><img src={s.poster} alt="" style={{position: "absolute", inset: "0", width: "100%", height: "100%", objectFit: "cover"}} /><video className="hvid" ref={v.setVid} src={s.src} poster={s.poster} muted autoPlay loop playsInline style={{position: "absolute", inset: "0", width: "100%", height: "100%", objectFit: "cover"}}></video></>) : null}
 {(s.img) ? (<><img src={s.src} alt="" style={{position: "absolute", inset: "0", width: "100%", height: "100%", objectFit: "cover"}} /></>) : null}
 </div>
 </React.Fragment>))}
@@ -437,18 +464,13 @@ class StoryHome extends React.Component {
 <div className="in" style={{display: "flex", flexDirection: "column", gap: "28px", maxWidth: "980px"}}>
 <p className="eb lt">Est. 2016 · Riau, Indonesia</p>
 <h1 id="hero-title" style={{margin: "0", fontSize: "clamp(48px, 7.4vw, 112px)", lineHeight: ".98", letterSpacing: "-.04em", fontWeight: "300", color: "#fff"}}>Restoring the soil <span style={{fontWeight: "600"}}>that feeds Asia.</span></h1>
-<p style={{margin: "0", maxWidth: "620px", fontSize: "clamp(17px, 1.5vw, 20px)", lineHeight: "1.6", color: "rgba(255,255,255,.88)"}}>We turn Sumatra's own lignite into humic biostimulants, so farmers can grow more while asking less of the land.</p>
+<p style={{margin: "0", maxWidth: "620px", fontSize: "clamp(17px, 1.5vw, 20px)", lineHeight: "1.6", color: "rgba(255,255,255,.88)"}}>Converting Sumatran lignite into humic biostimulants—empowering farmers to maximize productivity while preserving soil health.</p>
 <div style={{display: "flex", flexWrap: "wrap", gap: "12px"}}>
 <a className="btn btn-w" href="#story">Discover our story</a>
 <a className="btn btn-o" href="https://www.youtube.com/watch?v=hVMLSypNfac" target="_blank" rel="noopener"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"></path></svg>Watch our company film</a>
 </div>
 </div>
-<nav id="chapters" className="in" aria-label="Chapters" style={{animationDelay: ".2s", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 220px), 1fr))", gap: "28px"}}>
-<a className="chap" href="#story"><b>01</b><span style={{fontSize: "17px", fontWeight: "600"}}>Our origin</span><span style={{fontSize: "14px", lineHeight: "1.5", color: "rgba(255,255,255,.75)"}}>A rock beneath Sumatra</span></a>
-<a className="chap" href="#science"><b>02</b><span style={{fontSize: "17px", fontWeight: "600"}}>Our science</span><span style={{fontSize: "14px", lineHeight: "1.5", color: "rgba(255,255,255,.75)"}}>From lignite to living soil</span></a>
-<a className="chap" href="#commitment"><b>03</b><span style={{fontSize: "17px", fontWeight: "600"}}>Our commitment</span><span style={{fontSize: "14px", lineHeight: "1.5", color: "rgba(255,255,255,.75)"}}>Regenerative agriculture</span></a>
-<a className="chap" href="#reach"><b>04</b><span style={{fontSize: "17px", fontWeight: "600"}}>Our reach</span><span style={{fontSize: "14px", lineHeight: "1.5", color: "rgba(255,255,255,.75)"}}>From Riau to Asia</span></a>
-</nav>
+
 </div>
 </section>
 
@@ -465,21 +487,16 @@ class StoryHome extends React.Component {
 </div>
 </section>
 
-<section aria-labelledby="vision-title" style={{position: "relative", background: "#fff", padding: "0 0 24px"}}>
+<section id="who" aria-labelledby="who-title" style={{position: "relative", background: "#fff", padding: "0 0 24px"}}>
 <div aria-hidden="true" style={{position: "absolute", left: "max(24px, calc((100% - 1360px) / 2 + 24px))", top: "-72px", width: "2px", height: "144px", background: "linear-gradient(180deg, rgba(0,162,234,0), #00A2EA)"}}></div>
-<div className="wrap" style={{padding: "120px 24px 0", display: "flex", flexDirection: "column", gap: "72px"}}>
+<div className="wrap" style={{padding: "120px 24px 0", display: "flex", flexDirection: "column", gap: "48px"}}>
 <div className="gs-up" style={{display: "flex", flexDirection: "column", gap: "28px", maxWidth: "1180px"}}>
-<p className="eb">Our vision</p>
-<h2 id="vision-title" style={{margin: "0", fontSize: "clamp(30px, 3.6vw, 52px)", lineHeight: "1.18", letterSpacing: "-.025em", fontWeight: "300", color: "#06254F"}}>To become a leading company in developing and providing high-quality, consistent, innovative and competitive biostimulants, <span style={{fontWeight: "600"}}>supporting regenerative agriculture across the Asian region.</span></h2>
+<p className="eb">Who we are</p>
+<h2 id="who-title" style={{margin: "0", fontSize: "clamp(26px, 2.8vw, 40px)", lineHeight: "1.25", letterSpacing: "-.02em", fontWeight: "300", color: "#06254F"}}>PT Artha Prima Humatindo (APH) is a private Indonesian company that produces complete biostimulant formulations combining humic compounds, amino compounds, seaweed extract and essential micronutrients. We also produce humic and humin organic fertilisers.</h2>
 </div>
-<div className="gs-up" style={{display: "flex", flexDirection: "column", gap: "24px"}}>
-<p style={{margin: "0", fontSize: "15px", fontWeight: "600", color: "#57504D"}}>How we are getting there, in four chapters</p>
-<nav aria-label="Chapters" style={{display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 240px), 1fr))", gap: "28px"}}>
-<a className="road" href="#story"><span className="tnum" style={{fontSize: "13px", fontWeight: "600", letterSpacing: ".14em", color: "#0070AC"}}>01</span><span style={{fontSize: "19px", fontWeight: "600", color: "#06254F"}}>Our origin</span><span style={{fontSize: "14.5px", lineHeight: "1.55", color: "#57504D"}}>A rock beneath Sumatra, since 2016</span></a>
-<a className="road" href="#science"><span className="tnum" style={{fontSize: "13px", fontWeight: "600", letterSpacing: ".14em", color: "#0070AC"}}>02</span><span style={{fontSize: "19px", fontWeight: "600", color: "#06254F"}}>Our science</span><span style={{fontSize: "14.5px", lineHeight: "1.55", color: "#57504D"}}>High-quality, consistent formulations</span></a>
-<a className="road" href="#commitment"><span className="tnum" style={{fontSize: "13px", fontWeight: "600", letterSpacing: ".14em", color: "#0070AC"}}>03</span><span style={{fontSize: "19px", fontWeight: "600", color: "#06254F"}}>Our commitment</span><span style={{fontSize: "14.5px", lineHeight: "1.55", color: "#57504D"}}>Regenerative agriculture</span></a>
-<a className="road" href="#reach"><span className="tnum" style={{fontSize: "13px", fontWeight: "600", letterSpacing: ".14em", color: "#0070AC"}}>04</span><span style={{fontSize: "19px", fontWeight: "600", color: "#06254F"}}>Our reach</span><span style={{fontSize: "14.5px", lineHeight: "1.55", color: "#57504D"}}>Across the Asian region</span></a>
-</nav>
+<div className="gs-up" style={{display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 420px), 1fr))", gap: "24px 64px", maxWidth: "1180px"}}>
+<p style={{margin: "0", fontSize: "17px", lineHeight: "1.7", color: "#57504D"}}>The company was founded in Riau in January 2016, with a biostimulant production capacity of up to 5,000,000 litres. Our products are used across Indonesia and exported to Malaysia, Thailand, Vietnam, the Philippines, Bangladesh, Sri Lanka and Japan.</p>
+<p style={{margin: "0", fontSize: "17px", lineHeight: "1.7", color: "#57504D"}}>We pioneered biostimulants made from a local raw material, Sumatran leonardite rock. It is a renewable production input and a complete, cost-effective solution to many of farming's challenges and the effects of climate change, on the way to regenerative agriculture.</p>
 </div>
 </div>
 </section>
@@ -538,7 +555,7 @@ class StoryHome extends React.Component {
 <a href="/about" style={{fontSize: "15px", fontWeight: "600", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "8px", minHeight: "44px"}}>More about the company<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></a>
 </div>
 <div style={{marginTop: "48px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 260px), 1fr))", gap: "40px 32px"}}>
-<div className="stat gs-up"><span className="tnum" style={{fontSize: "clamp(44px, 4.4vw, 64px)", lineHeight: "1", fontWeight: "300", letterSpacing: "-.035em", color: "#06254F"}}>3,000,000 L</span><span style={{fontSize: "15px", lineHeight: "1.55", color: "#342C2A"}}>Biostimulant production capacity each year</span></div>
+<div className="stat gs-up"><span className="tnum" style={{fontSize: "clamp(44px, 4.4vw, 64px)", lineHeight: "1", fontWeight: "300", letterSpacing: "-.035em", color: "#06254F"}}>5,000,000 L</span><span style={{fontSize: "15px", lineHeight: "1.55", color: "#342C2A"}}>Biostimulant production capacity each year</span></div>
 <div className="stat gs-up"><span className="tnum" style={{fontSize: "clamp(44px, 4.4vw, 64px)", lineHeight: "1", fontWeight: "300", letterSpacing: "-.035em", color: "#06254F"}}>9</span><span style={{fontSize: "15px", lineHeight: "1.55", color: "#342C2A"}}>Biostimulant formulations across two product lines</span></div>
 <div className="stat gs-up"><span className="tnum" style={{fontSize: "clamp(44px, 4.4vw, 64px)", lineHeight: "1", fontWeight: "300", letterSpacing: "-.035em", color: "#06254F"}}>6</span><span style={{fontSize: "15px", lineHeight: "1.55", color: "#342C2A"}}>Export markets across Asia</span></div>
 <div className="stat gs-up"><span className="tnum" style={{fontSize: "clamp(44px, 4.4vw, 64px)", lineHeight: "1", fontWeight: "300", letterSpacing: "-.035em", color: "#06254F"}}>4 years</span><span style={{fontSize: "15px", lineHeight: "1.55", color: "#342C2A"}}>Shelf life of up to four years for our humic formulations</span></div>

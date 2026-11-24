@@ -82,6 +82,9 @@
 .story-home .hdot{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;padding:0;border:0;background:transparent;color:#fff;cursor:pointer}
 .story-home .hdot .d{display:block;width:8px;height:8px;border-radius:999px;background:rgba(255,255,255,.5);transition:width .4s,background-color .4s}
 .story-home .hdot .d.on{width:26px;background:#fff}
+.story-home .hvid{opacity:0;transition:opacity .4s ease}
+.story-home .hvid.playing{opacity:1}
+.story-home .hvid::-webkit-media-controls,.story-home .hvid::-webkit-media-controls-start-playback-button,.story-home .hvid::-webkit-media-controls-overlay-play-button{display:none!important;-webkit-appearance:none;opacity:0!important}
 @media (prefers-reduced-motion:reduce){.story-home .hs{transition:none}}
 .story-home .mnav{display:none}
 @media (max-width:1040px){.story-home .dnav{display:none!important}

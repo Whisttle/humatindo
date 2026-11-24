@@ -14,9 +14,12 @@ class StoryProducts extends React.Component {
   }
 
   componentDidMount() {
+    this._onLangP = (e) => { const l = e && e.detail === 'id' ? 'id' : 'en'; if (l !== this.state.lang) this.setState({ lang: l }); };
+    window.addEventListener('hm-lang', this._onLangP);
     this._alive = true;
     setTimeout(() => this.bindNav(), 0);
     let lang = 'en', consent = null;
+    try { const l = window.__hmLang || localStorage.getItem('hm_lang'); if (l === 'id') lang = 'id'; } catch (e) {}
     try { consent = JSON.parse(localStorage.getItem('hm_consent') || 'null'); } catch (e) {}
     this.setState({ lang, ckOpen: false, prefs: { analytics: !!(consent && consent.analytics), marketing: !!(consent && consent.marketing) } });
     this.markImgs();
@@ -29,7 +32,7 @@ class StoryProducts extends React.Component {
     if (!this.state.open && ps.open && this._opener) { try { this._opener.focus(); } catch (e) {} }
   }
 
-  componentWillUnmount() { this._alive = false; if (this._navSc && this._onNav) this._navSc.removeEventListener('scroll', this._onNav); clearTimeout(this._imgTimer); }
+  componentWillUnmount() { window.removeEventListener('hm-lang', this._onLangP); this._alive = false; if (this._navSc && this._onNav) this._navSc.removeEventListener('scroll', this._onNav); clearTimeout(this._imgTimer); }
 
   markImgs() {
     if (!this.root) return;

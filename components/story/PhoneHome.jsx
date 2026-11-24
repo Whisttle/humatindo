@@ -12,7 +12,19 @@ class PhoneHome extends React.Component {
     this.setRoot = (el) => { this.root = el; };
     this.setGlobe = (el) => { this.globe = el; };
     this.state.slide = 0; this.state.paused = false;
-    this.setVid = (el) => { if (el) { el.muted = true; const p = el.play && el.play(); if (p && p.catch) p.catch(() => {}); } };
+    // Autoplay can be blocked (e.g. iOS Low Power Mode, data saver). Keep trying: on load, on first touch/click, and on tab return.
+    this._vids = this._vids || new Set();
+    this._tryPlay = (v) => { if (!v || !v.isConnected) return; v.muted = true; v.defaultMuted = true; v.playsInline = true; if (!v.paused) return; const p = v.play && v.play(); if (p && p.catch) p.catch(() => this._armUnlock()); };
+    this._playAll = () => { this._vids.forEach((v) => { if (!v.isConnected) this._vids.delete(v); else this._tryPlay(v); }); };
+    this._armUnlock = () => {
+      if (this._unlockArmed || typeof document === 'undefined') return; this._unlockArmed = true;
+      const evs = ['touchstart', 'touchend', 'pointerdown', 'click', 'keydown', 'scroll'];
+      const go = () => { this._playAll(); if ([...this._vids].every((v) => !v.paused)) { evs.forEach((e) => document.removeEventListener(e, go, true)); this._unlockArmed = false; } };
+      evs.forEach((e) => document.addEventListener(e, go, { capture: true, passive: true }));
+      this._unlockOff = () => evs.forEach((e) => document.removeEventListener(e, go, true));
+    };
+    if (typeof document !== 'undefined' && !this._visBound) { this._visBound = true; this._onVis = () => { if (!document.hidden) this._playAll(); }; document.addEventListener('visibilitychange', this._onVis); }
+    this.setVid = (el) => { if (el) { if (!el._pb) { el._pb = 1; el.addEventListener('playing', () => el.classList.add('playing')); } if (!el.paused && el.readyState > 2) el.classList.add('playing'); this._vids.add(el); el.setAttribute('playsinline', ''); el.setAttribute('webkit-playsinline', ''); el.preload = 'auto'; this._tryPlay(el); el.addEventListener('canplay', () => this._tryPlay(el), { once: true }); } };
     this.togglePause = () => this.setState((s) => ({ paused: !s.paused }));
     this.goSlide = (i) => { this.setState({ slide: ((i % 4) + 4) % 4 }); this.startSlides(); };
     this.setHero = (el) => {
@@ -68,7 +80,7 @@ class PhoneHome extends React.Component {
     } catch (e) { this.setState({ prog: 1 }); }
   }
 
-  componentWillUnmount() {
+  componentWillUnmount() { if (this._unlockOff) this._unlockOff(); if (this._onVis) document.removeEventListener('visibilitychange', this._onVis);
     this._alive = false; clearInterval(this._slT); if (this._unbindHero) this._unbindHero(); cancelAnimationFrame(this._raf); cancelAnimationFrame(this._craf);
     if (this._io) this._io.disconnect(); if (this._sio) this._sio.disconnect(); if (this._unbindGlobe) this._unbindGlobe();
     if (this._sc && this._onScroll) this._sc.removeEventListener('scroll', this._onScroll);
@@ -383,7 +395,7 @@ class PhoneHome extends React.Component {
     const ease = (x) => 1 - Math.pow(1 - x, 3), p = ease(s.prog);
     const fmt = (n) => Math.round(n).toLocaleString('en-US');
     const stats = [
-      { v: fmt(3000000 * p) + ' L', l: 'Biostimulant capacity each year' },
+      { v: fmt(5000000 * p) + ' L', l: 'Biostimulant capacity each year' },
       { v: fmt(9 * p), l: 'Formulations in two product lines' },
       { v: fmt(6 * p), l: 'Export markets across Asia' },
       { v: fmt(4 * p) + ' yrs', l: 'Shelf life of our formulations' }
@@ -446,7 +458,7 @@ class PhoneHome extends React.Component {
 <div aria-hidden="true" style={{position: "absolute", inset: "0"}}>
 {(v.slides || []).map((s, s_i1) => (<React.Fragment key={s_i1}>
 <div className={s.cls}>
-{(s.vid) ? (<><video ref={v.setVid} src={s.src} poster={s.poster} muted autoPlay loop playsInline style={{position: "absolute", inset: "0", width: "100%", height: "100%", objectFit: "cover"}}></video></>) : null}
+{(s.vid) ? (<><img src={s.poster} alt="" style={{position: "absolute", inset: "0", width: "100%", height: "100%", objectFit: "cover"}} /><video className="hvid" ref={v.setVid} src={s.src} poster={s.poster} muted autoPlay loop playsInline style={{position: "absolute", inset: "0", width: "100%", height: "100%", objectFit: "cover"}}></video></>) : null}
 {(s.img) ? (<><img src={s.src} alt="" style={{position: "absolute", inset: "0", width: "100%", height: "100%", objectFit: "cover", objectPosition: "60% 50%"}} /></>) : null}
 </div>
 </React.Fragment>))}
@@ -459,18 +471,13 @@ class PhoneHome extends React.Component {
 <div className="in px" style={{position: "relative", paddingTop: "120px", paddingBottom: "24px", display: "flex", flexDirection: "column", gap: "20px"}}>
 <p className="eb lt">Est. 2016 · Riau, Indonesia</p>
 <h1 id="m-hero-title" className="hero-h" style={{margin: "0", fontSize: "46px", lineHeight: "1", letterSpacing: "-.04em", fontWeight: "300", color: "#fff"}}>Restoring the soil <span style={{fontWeight: "600"}}>that feeds Asia.</span></h1>
-<p style={{margin: "0", maxWidth: "560px", fontSize: "16px", lineHeight: "1.6", color: "rgba(255,255,255,.88)"}}>We turn Sumatra's own lignite into humic biostimulants, so farmers can grow more while asking less of the land.</p>
+<p style={{margin: "0", maxWidth: "560px", fontSize: "16px", lineHeight: "1.6", color: "rgba(255,255,255,.88)"}}>Converting Sumatran lignite into humic biostimulants—empowering farmers to maximize productivity while preserving soil health.</p>
 <div style={{display: "flex", flexWrap: "wrap", gap: "10px"}}>
 <a className="btn btn-w" href="#m-story">Discover our story</a>
 <a className="btn btn-o" href="https://www.youtube.com/watch?v=hVMLSypNfac" target="_blank" rel="noopener"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"></path></svg>Company film</a>
 </div>
 </div>
-<nav aria-label="Chapters" className="car" style={{position: "relative", paddingBottom: "28px"}}>
-<a className="chip" href="#m-story"><b>01</b>Our origin</a>
-<a className="chip" href="#m-science"><b>02</b>Our science</a>
-<a className="chip" href="#m-commitment"><b>03</b>Our commitment</a>
-<a className="chip" href="#m-reach"><b>04</b>Our reach</a>
-</nav>
+
 </section>
 
 <section aria-labelledby="m-purpose-label" className="px" style={{paddingTop: "64px", paddingBottom: "24px"}}>
@@ -483,6 +490,15 @@ class PhoneHome extends React.Component {
 <canvas ref={v.setGlobe} role="img" aria-label="Interactive globe: a signal spreads from Pekanbaru, Sumatra, with routes to Malaysia, Thailand, Vietnam, the Philippines, Sri Lanka and Bangladesh. Drag to rotate." style={{display: "block", width: "100%", maxWidth: "520px", aspectRatio: "1 / 1", touchAction: "pan-y", cursor: "grab"}}></canvas>
 <figcaption style={{display: "inline-flex", alignItems: "center", gap: "8px", minHeight: "36px", padding: "0 14px", borderRadius: "999px", background: "#fff", fontSize: "13px", color: "#06254F", boxShadow: "0 10px 24px -18px rgba(6,37,79,.5)"}}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 11V5a2 2 0 0 1 4 0v6M13 10a2 2 0 0 1 4 0v3a6 6 0 0 1-6 6h-1a6 6 0 0 1-5-3l-2-3a2 2 0 0 1 3-2l1 1"></path></svg>Drag the globe to explore</figcaption>
 </figure>
+</div>
+</section>
+
+<section id="m-who" aria-labelledby="m-who-title" className="px" style={{paddingTop: "56px"}}>
+<div style={{display: "flex", flexDirection: "column", gap: "18px", maxWidth: "760px"}}>
+<p className="eb">Who we are</p>
+<h2 id="m-who-title" style={{margin: "0", fontSize: "22px", lineHeight: "1.35", letterSpacing: "-.015em", fontWeight: "300", color: "#06254F"}}>PT Artha Prima Humatindo (APH) is a private Indonesian company that produces complete biostimulant formulations combining humic compounds, amino compounds, seaweed extract and essential micronutrients. We also produce humic and humin organic fertilisers.</h2>
+<p style={{margin: "0", fontSize: "16px", lineHeight: "1.65", color: "#57504D"}}>The company was founded in Riau in January 2016, with a biostimulant production capacity of up to 5,000,000 litres. Our products are used across Indonesia and exported to Malaysia, Thailand, Vietnam, the Philippines, Bangladesh, Sri Lanka and Japan.</p>
+<p style={{margin: "0", fontSize: "16px", lineHeight: "1.65", color: "#57504D"}}>We pioneered biostimulants made from a local raw material, Sumatran leonardite rock. It is a renewable production input and a complete, cost-effective solution to many of farming's challenges and the effects of climate change, on the way to regenerative agriculture.</p>
 </div>
 </section>
 
